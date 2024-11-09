@@ -1,27 +1,18 @@
 from db import Base
-from sqlalchemy.orm import Mapped,mapped_column
+from sqlalchemy import Column,String,Boolean,DateTime
 from uuid import UUID,uuid4
 
 class User(Base):
+
     __tablename__="users"
 
-    id:Mapped[UUID] = mapped_column(primary_key=True,default_factory=uuid4)
-
-    personal_id:Mapped[str]=mapped_column(unique=True)
-
-    fullname:Mapped[str]=mapped_column()
-
-    phone:Mapped[str]=mapped_column(unique=True)
-
-    password:Mapped[str]=mapped_column()
-
-    created_at:Mapped[str]=mapped_column()
-
-    updated_at:Mapped[str]=mapped_column()
-
-    last_login:Mapped[str]=mapped_column()
-
-    is_active:Mapped[bool]=mapped_column(default=False)
-
-    is_superuser:Mapped[bool]=mapped_column(default=False)
-
+    username = Column(String,unique=True,index=True)
+    fullname = Column(String)
+    email = Column(String,unique=True)
+    password = Column(String)
+    last_login = Column(DateTime)
+    is_active = Column(Boolean,default=False)
+    is_verified = Column(Boolean,default=False)
+    is_superuser = Column(Boolean,default=False)
+    profile_image=Column()
+    profile_type=Column(String)
