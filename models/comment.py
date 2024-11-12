@@ -1,14 +1,24 @@
 from db import Base
-from sqlalchemy import Column,String,Boolean,Integer
+from sqlalchemy import Column,String,Boolean,Integer,ForeignKey,UUID
+from sqlalchemy.orm import relationship
 import random
 import string
+from uuid import uuid4
+from .relation_tables import *
 
 class Comment(Base):
 
-    __tablename__="posts"
+    __tablename__="comments"
    
     content = Column(String)
-    interactions=Column()
-    replies=Column()
-    user = Column()
+    user_id= Column(UUID(as_uuid=uuid4),ForeignKey('users.id'),nullable=True)
+    post_id= Column(UUID(as_uuid=uuid4),ForeignKey('posts.id'),nullable=True)
     comment_type = Column(String)
+
+    #relations
+    user=relationship("UserModel",back_populates="comments")
+    post=relationship("PostModel",back_populates="comments")
+    liked_users=relationship("UserModel",secondary=comment_liked_user,back_populates="comment_likes",lazy=True)
+
+
+
