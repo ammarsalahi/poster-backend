@@ -20,7 +20,7 @@ class Story(Base):
     media=relationship("MediaModel",back_populates="story")
     user=relationship("UserModel",back_populates="stories")
     story_liked_users = relationship("UsersModel",secondary=post_liked_user,back_populates="post_likes",lazy=True)
-    medias = relationship("MediaModel",secondary=post_medias,back_populates="post",lazy=True)
+    # medias = relationship("MediaModel",secondary=post_medias,back_populates="post",lazy=True)
 
  
 

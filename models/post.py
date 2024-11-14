@@ -13,8 +13,9 @@ class Post(Base):
     post_id = Column(String,unique=True,default=lambda:Base().get_unique_id())
     content = Column(String)
     views=Column(Integer,default=0)
-    user = Column(UUID(as_uuid=uu),ForeignKey('users.id'),nullable=True)
+    user_id = Column(UUID(as_uuid=uu),ForeignKey('users.id'),nullable=True)
     post_type = Column(String)
+    visible=Column(Boolean,default=True)
 
     #relations
 

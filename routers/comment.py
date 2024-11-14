@@ -4,15 +4,15 @@ routers=APIRouter()
 
 
 @routers.get("/")
-async def list_users():
+async def list_comments():
     return {}
 
 @routers.get("/{id}")
-async def detail_user():
+async def detail_comment():
     return {}
 
 @routers.post("/")
-async def create_user():
+async def create_comment():
     return {}
 
 @routers.patch("/{id}")
