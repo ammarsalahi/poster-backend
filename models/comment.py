@@ -6,7 +6,7 @@ import string
 from uuid import uuid4
 from .relation_tables import *
 
-class Comment(Base):
+class CommentModel(Base):
 
     __tablename__="comments"
    

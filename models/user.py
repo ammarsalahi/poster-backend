@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from uuid import UUID,uuid4
 from .relation_tables import *
 
-class User(Base):
+class UserModel(Base):
 
     __tablename__="users"
 

@@ -6,7 +6,7 @@ import random
 import string
 
 
-class Media(Base):
+class MediaModel(Base):
 
     __tablename__="media"
     

@@ -5,10 +5,11 @@ import random
 import string
 from uuid import uuid4
 from .relation_tables import *
-class Post(Base):
+
+
+class PostModel(Base):
 
     __tablename__="posts"
-    
    
     post_id = Column(String,unique=True,default=lambda:Base().get_unique_id())
     content = Column(String)

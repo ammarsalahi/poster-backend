@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 import random
 import string
 
-class UserSettings(Base):
+class UserSettingsModel(Base):
 
     __tablename__="user_settings"
 

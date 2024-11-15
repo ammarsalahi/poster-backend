@@ -5,7 +5,7 @@ import random
 import string
 from uuid import uuid4
 
-class Story(Base):
+class StoryModel(Base):
 
     __tablename__="stories"
    
