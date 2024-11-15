@@ -14,6 +14,7 @@ class Comment(Base):
     user_id= Column(UUID(as_uuid=uuid4),ForeignKey('users.id'),nullable=True)
     post_id= Column(UUID(as_uuid=uuid4),ForeignKey('posts.id'),nullable=True)
     comment_type = Column(String)
+    visible=Column(Boolean,default=True)
 
     #relations
     user=relationship("UserModel",back_populates="comments")

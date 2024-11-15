@@ -1,8 +1,9 @@
 from pydantic import BaseModel,ConfigDict
 from uuid import UUID,uuid4
 from typing import List
+from .user import UserResultSchema
 
-class UserBase(BaseModel):
+class StorySchema(BaseModel):
 
     id:UUID
     story_id:str
@@ -11,22 +12,35 @@ class UserBase(BaseModel):
     media_id:UUID
     created_at:str
     updated_at:str
-    # story_liked_users:List[]|None
+    story_liked_users:List[UserResultSchema]|None
 
-    # terminals:List[TerminalSchema]|None
-    # tickets:List[TerminalSchema]|None
     model_config=ConfigDict(
         from_attributes=True
     )
 
 
-class StoryCreate(BaseModel):
-    pass
+class StoryCreateSchema(BaseModel):
+    user_id:UUID
+    media:str
     
     model_config=ConfigDict(
         from_attributes=True
     )
 
+
+class StoryResultSchema(BaseModel):
+
+    id:UUID
+    story_id:str
+    views:int
+    user_id:UUID
+    media:str
+    created_at:str
+    updated_at:str
+
+    model_config=ConfigDict(
+        from_attributes=True
+    )
 
 class StoryUpdateSchema(BaseModel):
     pass

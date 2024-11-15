@@ -1,8 +1,8 @@
 from pydantic import BaseModel,ConfigDict
 from uuid import UUID,uuid4
-
-
-class PostBase(BaseModel):
+from .comment import CommentSchema
+from typing import List
+class PostSchema(BaseModel):
 
     id:UUID
     post_id:str
@@ -13,7 +13,8 @@ class PostBase(BaseModel):
     visible:bool
     created_at:str
     updated_at:str
-
+    comments:List[CommentSchema]|None
+    
     # terminals:List[TerminalSchema]|None
     # tickets:List[TerminalSchema]|None
     model_config=ConfigDict(
@@ -21,7 +22,7 @@ class PostBase(BaseModel):
     )
 
 
-class PostCreate(BaseModel):
+class PostCreateSchema(BaseModel):
     content:str
     user_id:UUID
     post_type:str 

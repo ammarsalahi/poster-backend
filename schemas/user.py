@@ -1,9 +1,10 @@
 from pydantic import BaseModel,ConfigDict
 from uuid import UUID,uuid4
 from datetime import datetime
-
-
-class UserBase(BaseModel):
+from typing import List 
+from .post import PostSchema
+from .story import StoryResultSchema
+class UserSchema(BaseModel):
 
     id:UUID
     username:str
@@ -18,13 +19,16 @@ class UserBase(BaseModel):
     is_active:bool
     is_superuser:bool
     is_verified:bool
+    posts:List[PostSchema]|None
+    stories:List[StoryResultSchema]|None
+
 
     model_config=ConfigDict(
         from_attributes=True
     )
 
 
-class UserCreate(BaseModel):
+class UserCreateSchema(BaseModel):
     username:str
     fullname:str
     email:str
