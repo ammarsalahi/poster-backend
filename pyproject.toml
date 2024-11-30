@@ -1,0 +1,14 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.5",
+    "fastapi-cli>=0.0.5",
+    "sqlalchemy>=2.0.36",
+    "sqlmodel>=0.0.22",
+    "typer>=0.14.0",
+    "uvicorn>=0.32.1",
+]
