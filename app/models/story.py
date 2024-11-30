@@ -7,10 +7,11 @@ from typing import List
 from .linked_tables import *
 from datetime import datetime
 from .user import UserResponse
+from utils.uid_tool import get_uid
 
 
 class Story(SQLModel,table=True):
-    story_id:str = Field(unique=True,default=lambda:BaseModel().get_uid(20))
+    story_id:str = Field(unique=True,default=lambda:get_uid(20))
     views:int = Field(default=0,min_items=0)
     media_file:str | None = None
     story_type:str = Field()

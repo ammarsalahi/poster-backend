@@ -1,5 +1,4 @@
-from db import BaseModel
-# from sqlalchemy.orm import relationship
+from core import BaseModel
 from uuid import UUID,uuid4
 from sqlmodel import Field,Relationship,SQLModel
 from datetime import datetime
