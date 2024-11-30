@@ -1,4 +1,4 @@
-from db import BaseModel
+from core import BaseModel
 from sqlmodel import Field,Relationship,SQLModel
 from uuid import uuid4,UUID
 import random

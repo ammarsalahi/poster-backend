@@ -39,22 +39,22 @@ class UserCrud:
         #     users=await session.execute(query)
         #     return users.scalars()
     async def read_one(self,user_id:UUID)->User:
-        query=select(User).where(User.id==user_id)
+        query=select(User).filter(User.id==user_id)
         async with self.db_session as session:
             user= await session.execute(query)
             if user:
                 return user.scalar()
             else:
-                raise HTTPException(status=status.HTTP_404_NOT_FOUND)
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     async def read_by_username(self,username:str)->User:
-        query=select(User).where(User.username==username)
+        query=select(User).filter(User.username==username)
         async with self.db_session as session:
             user= await session.execute(query)
             if user:
                 return user.scalar()
             else:
-                raise HTTPException(status=status.HTTP_404_NOT_FOUND)
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
 
     async def add(self,user_data:UserAdd)->UserResponse:
@@ -67,16 +67,20 @@ class UserCrud:
 
 
     async def update(self,user_id:UUID,user_data:UserEdit)->User:
-        query=select(User).where(User.id==user_id)
-        async with self.db_session as session:
-            user=session.execute(query)
-            if user:
-                for key,value in user_data.dict(exclude_unset=True).items():
-                    setattr(User,key,value)
-                await session.commit()   
-                return user 
-            else:
-                raise HTTPException(status=status.HTTP_404_NOT_FOUND)
+        query=select(User).filter(User.id==user_id)
+        try:
+            async with self.db_session as session:
+                user=session.execute(query)
+                if user:
+                    for key,value in user_data.dict(exclude_unset=True).items():
+                        setattr(user,key,value)
+                    await session.commit()   
+                    return user 
+                else:
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            await session.rollback()
+            raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,user_id:UUID):
         query=select(User).filter(User.id==user_id)
