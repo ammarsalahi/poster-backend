@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from api import app_router
+from core import settings
 app = FastAPI(
-    title="Poster API",
-    description="v0.0.1",
-    docs_url="/"
+    title=settings.PROJECT_NAME,
+    docs_url=settings.DOC_URL,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-app.include_router(app_router)
+app.include_router(app_router,prefix=settings.API_V1_STR)

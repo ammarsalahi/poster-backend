@@ -6,15 +6,15 @@ from sqlalchemy.sql import func
 from sqlalchemy import Column,DateTime
 import secrets
 import string
-from sqlalchemy import UUID as SQLUUID
+from sqlalchemy import UUID as SQL_UUID
 
 
-class BaseModel():
-
+class BaseModel(SQLModel):
     __abstract__=True
 
     id: UUID  = Field(
-        sa_column=Column(SQLUUID(as_uuid=True),default=uuid4,primary_key=True,index=True)
+        default_factory=uuid4,
+        sa_column=Column(SQL_UUID(as_uuid=uuid4),default=uuid4,primary_key=True,index=True)
     )
     created_at: datetime = Field(
         sa_column=Column(DateTime,default=func.now(),nullable=True)

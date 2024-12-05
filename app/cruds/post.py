@@ -1,4 +1,4 @@
-from sqlmodel.ext.asyncio import AsyncSession
+from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select,or_
 from fastapi import HTTPException,status
 from typing import List
@@ -15,14 +15,14 @@ class PostCrud:
         async with self.db_session as session:
             posts= await session.execute(query)
             return posts.scalars()
-        
-            
+
+
     async def filter(self,limit:int,offset:int,query:str):
-        pass  
+        pass
 
     async def read_one(self,id:UUID):
         query=select(Post).filter(Post.id==id)
-        async with self.db_session as session: 
+        async with self.db_session as session:
             post=await session.execute(query)
             if post:
                 return post.scalar()
@@ -31,7 +31,7 @@ class PostCrud:
 
     async def read_by_post_id(self,post_id:str):
         query=select(Post).filter(Post.post_id==post_id)
-        async with self.db_session as session: 
+        async with self.db_session as session:
             post=await session.execute(query)
             if post:
                 return post.scalar()
@@ -56,7 +56,7 @@ class PostCrud:
                     await session.commit()
                     return post
                 else:
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)   
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
         except Exception as e:
             await session.rollback()
@@ -70,5 +70,4 @@ class PostCrud:
                 await session.delete(post)
                 await session.commit()
             else:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) 
-
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
