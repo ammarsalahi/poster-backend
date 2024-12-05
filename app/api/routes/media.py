@@ -1,6 +1,6 @@
 from fastapi import APIRouter,status
 from models import *
-from api.deps import * 
+from api.deps import *
 from cruds import MediaCrud
 
 
