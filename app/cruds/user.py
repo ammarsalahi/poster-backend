@@ -3,13 +3,11 @@ from sqlmodel import select,or_
 from models import *
 from fastapi import HTTPException,status
 from uuid import UUID
-import bcrypt
+
 from typing import List
 
 
-def hashed_password(password:str):
-    salt=bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode('utf-8'),salt).decode('utf-8')
+
 
 class UserCrud:
 
@@ -63,7 +61,7 @@ class UserCrud:
         async with self.db_session as session:
             session.add(user)
             await session.commit()
-        return user   
+        return user
 
 
     async def update(self,user_id:UUID,user_data:UserEdit)->User:
@@ -74,8 +72,8 @@ class UserCrud:
                 if user:
                     for key,value in user_data.dict(exclude_unset=True).items():
                         setattr(user,key,value)
-                    await session.commit()   
-                    return user 
+                    await session.commit()
+                    return user
                 else:
                     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
         except Exception as e:
@@ -90,8 +88,8 @@ class UserCrud:
                 await session.delete(user)
                 await session.commit()
             else:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)  
-    
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
         # if is_superuser:
         #     query=sql.select(UserModel).offset(offset).limit(limit)
         #     async with self.db_session as session:
@@ -99,22 +97,22 @@ class UserCrud:
         #         return users.scalars()
         # else:
         #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-                    
 
-    
-          
+
+
+
     # async def read_one(self,user_id:UUID):
     #     query=sql.select(UserModel).filter(UserModel.id==id)
-    #     async with self.db_session as session: 
+    #     async with self.db_session as session:
     #         user=await session.execute(query)
     #         if user:
     #             return user.scalar()
     #         else:
-    #             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)   
-                              
+    #             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
     # async def read_by_username(self,username:str):
     #     query=sql.select(UserModel).filter(UserModel.username==username)
-    #     async with self.db_session as session: 
+    #     async with self.db_session as session:
     #         user=await session.execute(query)
     #         return user.scalar()
 
@@ -124,9 +122,9 @@ class UserCrud:
     #     async with self.db_session as session:
     #         session.add(user)
     #         await session.commit()
-    #     return user    
+    #     return user
 
-        
+
     # async def update(self,user_id:UUID,user_data:UserUpdateSchema):
     #     query=sql.select(UserModel).filter(UserModel.id==user_id)
     #     try:
@@ -138,7 +136,7 @@ class UserCrud:
     #                 await session.commit()
     #                 return user
     #             else:
-    #                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)   
+    #                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     #     except Exception as e:
     #         await session.rollback()
@@ -153,10 +151,4 @@ class UserCrud:
     #             await session.commit()
     #             return user
     #         else:
-    #             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)   
-
-                    
-     
-
-          
-
+    #             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
