@@ -20,7 +20,7 @@ class CommentCrud:
             
     # async def filter(self,limit:int,offset:int,query:str):
     #     pass  
-    async def read_one(self,comment_id):
+    async def read_one(self,comment_id:UUID):
         query=select(Comment).filter(Comment.id==comment_id)
         async with self.db_session as session: 
             comment=await session.execute(query)

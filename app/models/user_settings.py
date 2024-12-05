@@ -25,7 +25,7 @@ class SettingsEdit(SQLModel):
     is_two_factor_auth:bool
 
 
-class Settings(SQLModel):
+class SettingsResponse(SQLModel):
     id:UUID
     user_id:UUID
     theme:str 

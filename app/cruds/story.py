@@ -14,7 +14,13 @@ class StoryCrud:
                 stories = await session.execute(query)
                 return stories.scalars()     
   
-    async def read_one(self,story_id:UUID) -> Story:
+    async def read_one(self,id:UUID) -> Story:
+        query = select(Story).filter(Story.id==story_id)
+        async with self.db_session as session:
+            story=await session.execute(query)
+            return story.scalar()
+
+    async def read_by_story_id(self,story_id:str) -> Story:
         query = select(Story).filter(Story.story_id==story_id)
         async with self.db_session as session:
             story=await session.execute(query)

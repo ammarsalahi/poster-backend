@@ -12,3 +12,6 @@ dependencies = [
     "typer>=0.14.0",
     "uvicorn>=0.32.1",
 ]
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

@@ -11,13 +11,11 @@ class PostCrud:
         self.db_session=db_session
 
     async def read_all(self,limit:int,offset:int,is_superuser:bool):
-        if is_superuser:
-            query=select(Post).offset(offset).limit(limit)
-            async with self.db_session as session:
-                posts= await session.execute(query)
-                return posts.scalars()
-        else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        query=select(Post).offset(offset).limit(limit)
+        async with self.db_session as session:
+            posts= await session.execute(query)
+            return posts.scalars()
+        
             
     async def filter(self,limit:int,offset:int,query:str):
         pass  
@@ -47,7 +45,7 @@ class PostCrud:
             await session.commit()
         return post
 
-    async def update(self,post_id:UUID,post_data:PostEdit):
+    async def update(self,post_id:str,post_data:PostEdit):
         query=select(Post).filter(Post.post_id==post_id)
         try:
             async with self.db_session as session:

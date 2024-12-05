@@ -7,27 +7,27 @@ class UserSettingsCrud:
     def __init__(self,db_session:AsyncSession)->None:
         self.db_session=db_session
 
-    async def read_all(self,limit:int,offset:int,is_superuser:bool) -> List[Settings]:
+    async def read_all(self,limit:int,offset:int,is_superuser:bool) -> List[SettingsResponse]:
         if is_superuser:
             query=select(Settings).offset(offset).limit(limit)
             async with self.db_session as session:
                 setts = await session.execute(query)
                 return setts.scalars()     
   
-    async def read_one(self,id:UUID) -> Settings:
+    async def read_one(self,id:UUID) -> SettingsResponse:
         query = select(Settings).filter(Settings.id==id)
         async with self.db_session as session:
             sett=await session.execute(query)
             return sett.scalar()
 
-    async def add(self,set_data:SettingsAdd) -> Settings:
+    async def add(self,set_data:SettingsAdd) -> SettingsResponse:
         sett = Settings(**set_data.dict())
         async with self.db_session as session:
             session.add(sett)
             await session.commit()
         return sett 
         
-    async def update(self,id:UUID,sett_data:SettingsEdit) -> Settings:
+    async def update(self,id:UUID,sett_data:SettingsEdit) -> SettingsResponse:
         query = select(Settings).filter(Settings.id == id)
         try:
             async with self.db_session as session:
