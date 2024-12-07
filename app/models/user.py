@@ -6,6 +6,9 @@ from .linked_tables import *
 from datetime import datetime
 from sqlalchemy import Column,DateTime
 from sqlalchemy.sql import func
+from pydantic import BaseModel
+
+
 
 class User(SQLModel,table=True):
 
@@ -50,6 +53,18 @@ class UserEdit(SQLModel):
     last_login:datetime|None=None
     is_active:bool|None=None
     is_verified:bool|None=None
+
+class UserSignin(SQLModel):
+    username:str
+    password:str
+
+class UserToken(BaseModel):
+    access_token:str
+
+class UserPasswordChange(SQLModel):
+    current_password:str
+    new_password:str
+
 
 class UserResponse(SQLModel):
     id:UUID

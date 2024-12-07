@@ -1,6 +1,6 @@
-from fastapi import APIRouter,status
+from fastapi import APIRouter,status,HTTPException
 from models import *
-from api.deps import * 
+from api.deps import *
 from cruds import UserSettingsCrud
 
 
@@ -8,24 +8,38 @@ routers=APIRouter()
 
 
 @routers.get("/",response_model=List[SettingsResponse])
-async def list_settings(session:sessionDep,limit:int=10,offser:int=0):
-    # use true for superuser before add token
-    return await UserSettingsCrud(session).read_all(limit,offset,True)
+async def list_settings(session:sessionDep,currentUser:userDep,limit:int=10,offset:int=0):
+    if currentUser.is_superuser:
+        return await UserSettingsCrud(session).read_all(limit,offset)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
-@routers.get("/{id}",response_model=SettingsResponse)
-async def detail_settings(session:sessionDep,sett_id:UUID):
-    return await UserSettingsCrud(session).read_one(sett_id)
+@routers.get("/detail/{id}",response_model=SettingsResponse)
+async def detail_settings(session:sessionDep,currentUser:userDep,sett_id:UUID):
+    if currentUser.is_superuser:
+        return await UserSettingsCrud(session).read_one(sett_id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
+@routers.get("/detail",response_model=SettingsResponse)
+async def detail_setting_user(session:sessionDep,currentUser:userDep,sett_id:UUID):
+    return await UserSettingsCrud(session).read_by_user_id(currentUser.id)
 
 @routers.post("/",response_model=SettingsResponse)
-async def create_settings(session:sessionDep,sett_data:SettingsAdd):
-    return await UserSettingsCrud(session).add(sett_data)
+async def create_settings(session:sessionDep,currentUser:userDep,sett_data:SettingsAdd):
+    if currentUser:
+        return await UserSettingsCrud(session).add(sett_data)
 
 
 @routers.patch("/{id}",response_model=SettingsResponse)
-async def update_settings(session:sessionDep,sett_id:UUID,sett_data:SettingsEdit):
-    return await UserSettingsCrud(session).update(sett_id,sett_data)
+async def update_settings(session:sessionDep,currentUser:userDep,sett_id:UUID,sett_data:SettingsEdit):
+    sett = await UserSettingsCrud(session).read_one(sett_id)
+    if currentUser.is_superuser or currentUser.id==sett.user_id:
+        return await UserSettingsCrud(session).update(sett_id,sett_data)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 
 @routers.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
-async def delete_settings(session:sessionDep,sett_id:UUID):
-    return await UserSettingsCrud(session).delete(sett_id)
+async def delete_settings(session:sessionDep,currentUser:userDep,sett_id:UUID):
+    sett = await UserSettingsCrud(session).read_one(sett_id)
+    if currentUser.is_superuser or currentUser.id==sett.user_id:
+        return await UserSettingsCrud(session).delete(sett_id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")

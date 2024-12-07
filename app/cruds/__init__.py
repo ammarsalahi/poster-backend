@@ -4,3 +4,4 @@ from .media import MediaCrud
 from .post import PostCrud
 from .settings import UserSettingsCrud
 from .story import StoryCrud
+from .validation import ValidationCrud

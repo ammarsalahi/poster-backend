@@ -14,7 +14,7 @@ from passlib.context import CryptContext
 
 SECRET_KEY=secrets.token_hex(62)
 ALGORITHM = "HS256"
-TIME_DELTA=24
+EXPIRE_TIME_DELTA=24
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/signin")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -25,7 +25,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(hours=TIME_DELTA)
+        expire = datetime.now(timezone.utc) + timedelta(hours=EXPIRE_TIME_DELTA)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

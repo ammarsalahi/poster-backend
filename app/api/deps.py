@@ -1,6 +1,6 @@
 from core import async_session_factory
 from sqlmodel.ext.asyncio.session import AsyncSession
-from fastapi import Depends,HTTPException
+from fastapi import Depends,HTTPException,status
 from typing import Annotated
 from models import UserResponse
 from core import get_current_user
