@@ -38,4 +38,4 @@ class CommentResponse(SQLModel):
     created_at:datetime
     updated_at:datetime
     visible:bool
-    comment_liked_users:List["UserResponse"]
+    # comment_liked_users:List["UserResponse"]

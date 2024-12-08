@@ -6,7 +6,7 @@ from .linked_tables import *
 from datetime import datetime
 from sqlalchemy import Column,DateTime
 from sqlalchemy.sql import func
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 
@@ -70,7 +70,7 @@ class UserResponse(SQLModel):
     id:UUID
     username:str
     fullname:str
-    email:str
+    email:EmailStr
     profile_type:str
     profile_image_url:str
     last_login:datetime
@@ -79,9 +79,9 @@ class UserResponse(SQLModel):
     is_superuser:bool
     created_at:datetime
     updated_at:datetime
-    user_posts:List["PostResponse"]
-    user_comments:List["CommentResponse"]
-    user_stories:List["StoryResponse"]
-    liked_posts:List["PostResponse"]
-    liked_comments:List["CommentResponse"]
-    liked_stories:List["StoryResponse"]
+    # user_posts:List["PostResponse"]
+    # user_comments:List["CommentResponse"]
+    # user_stories:List["StoryResponse"]
+    # liked_posts:List["PostResponse"]
+    # liked_comments:List["CommentResponse"]
+    # liked_stories:List["StoryResponse"]

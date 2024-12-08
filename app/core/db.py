@@ -18,3 +18,7 @@ async_session_factory=sessionmaker(
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
+
+async def get_db():
+    async with async_session_factory() as session:
+        yield session

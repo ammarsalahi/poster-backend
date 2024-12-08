@@ -8,6 +8,7 @@ from utils.uid_tool import get_uid
 from datetime import datetime
 from sqlalchemy import Column,DateTime
 from sqlalchemy.sql import func
+from .media import MediaResponse,MediaAdd
 
 class Post(SQLModel,table=True):
 
@@ -29,7 +30,7 @@ class Post(SQLModel,table=True):
 class PostAdd(SQLModel):
     content:str|None=None
     post_type:str|None=None
-    medias:List[str]
+    medias:List[MediaAdd]
     user_id:UUID
 
 class PostEdit(SQLModel):
@@ -44,9 +45,9 @@ class PostResponse(SQLModel):
     post_type:str
     visible:bool
     user_id:UUID
-    medias:List["MediaResponse"]
-    post_comments:List["CommentResponse"]
-    post_liked_users:List["UserResponse"]
+    medias:List[MediaResponse]
+    # post_comments:List["CommentResponse"]
+    # post_liked_users:List["UserResponse"]
 
 
 

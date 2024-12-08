@@ -3,7 +3,7 @@ from sqlmodel import select,or_
 from models import *
 from fastapi import HTTPException,status
 from uuid import UUID
-from core import hashed_password,verify_password
+from core.security import hashed_password,verify_password
 from typing import List
 from pydantic import EmailStr
 
@@ -12,33 +12,23 @@ class UserCrud:
     def __init__(self,db_session:AsyncSession)->None:
         self.db_session=db_session
 
-    async def read_all(self,limit:int,offset:int,is_superuser:bool)->List[UserResponse]:
+    async def read_all(self,limit:int,offset:int,is_superuser:bool):
         if is_superuser:
             query=select(User).offset(offset).limit(limit)
             async with self.db_session as session:
                 try:
                     users = await session.execute(query)
-                    return users.scalars()
+                    return users.scalars().all()
                 except Exception as e:
                     raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-    async def filter(self,limit:int,offset:int,query:str):
-        pass
-        # query=select(User).filter(
-        #     or_(
-        #         User.fullname.
-        #     )
-        # )
-        # query=sql.select(UserModel).filter(
-        #     sql.or_(
-        #         UserModel.username.ilike(f"%{query}"),
-        #         UserModel.fullname.ilike(f"%{query}")
-        #     )
-        # ).limit(limit).offset(offset)
-        # async with self.db_session as session:
-        #     users=await session.execute(query)
-        #     return users.scalars()
+    async def filter(self,limit:int,query:str):
+        query=select(User).filter(or_(User.username==query,User.fullname==query)).limit(limit)
+        async with self.db_session as session:
+            users=await session.execute(query)
+            return users.scalars().all()
+
     async def read_one(self,user_id:UUID)->UserResponse:
         query=select(User).filter(User.id==user_id)
         async with self.db_session as session:
@@ -138,7 +128,7 @@ class UserCrud:
                     raise HTTPException(detail="User Not Found",status_code=status.HTTP_404_NOT_FOUND)
                     await session.delete(user)
                     await session.commit()
-            except Exception as e
+            except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # if is_superuser:

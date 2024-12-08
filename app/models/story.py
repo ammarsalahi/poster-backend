@@ -39,7 +39,7 @@ class StoryResponse(SQLModel):
     user_id:UUID
     created_at:datetime
     updated_at:datetime
-    story_liked_users:List["UserResponse"]
+    # story_liked_users:List["UserResponse"]
 
 
 

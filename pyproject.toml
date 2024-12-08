@@ -17,6 +17,7 @@ dependencies = [
     "pyjwt>=2.10.1",
     "passlib[bcrypt]>=1.7.4",
     "strawberry-graphql>=0.253.1",
+    "pydantic[email]>=2.10.2",
 ]
 [tool.pyright]
 venvPath = "."
