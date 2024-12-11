@@ -3,13 +3,15 @@ from sqlmodel import select,or_
 from fastapi import HTTPException,status
 from models import *
 from typing import List
+from schemas.response import *
+
 class UserSettingsCrud:
 
     def __init__(self,db_session:AsyncSession)->None:
         self.db_session=db_session
 
-    async def read_all(self,limit:int,offset:int) -> List[SettingsResponse]:
-        query=select(Settings).offset(offset).limit(limit)
+    async def read_all(self,limit:int,offset:int):
+        query=select(SettingsModel).offset(offset).limit(limit)
         async with self.db_session as session:
             setts = await session.execute(query)
             return setts.scalars()
@@ -24,6 +26,7 @@ class UserSettingsCrud:
                 return sett.scalar_one()
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     async def read_by_user_id(self,user_id:UUID) -> SettingsResponse:
         query = select(Settings).filter(Settings.user_id==user_id)
         async with self.db_session as session:
@@ -49,14 +52,15 @@ class UserSettingsCrud:
         query = select(Settings).filter(Settings.id == id)
         try:
             async with self.db_session as session:
-                sett = await session.execute(query)
+                result = await session.execute(query)
+                sett = result.scalar_one_or_none()
                 if not sett:
                     raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)
 
                 for key,value in sett_data.dict(exclude_unset=True).items():
                     setattr(Settings,key,value)
-                    await session.commit()
-                return sett.scalar_one()
+                await session.commit()
+                return sett
         except Exception as e:
             await session.rollback()
             raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")

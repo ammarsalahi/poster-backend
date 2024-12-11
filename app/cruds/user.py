@@ -1,11 +1,16 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select,or_
+from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 from models import *
 from fastapi import HTTPException,status
 from uuid import UUID
 from core.security import hashed_password,verify_password
 from typing import List
 from pydantic import EmailStr
+from schemas.response import *
+from schemas.user import *
+import sqlalchemy as sql
+
+
 
 class UserCrud:
 
@@ -14,23 +19,78 @@ class UserCrud:
 
     async def read_all(self,limit:int,offset:int,is_superuser:bool):
         if is_superuser:
-            query=select(User).offset(offset).limit(limit)
+            query=sql.select(UserModel).options(
+                selectinload(UserModel.user_posts),
+                selectinload(UserModel.user_comments),
+                selectinload(UserModel.user_stories),
+                selectinload(UserModel.liked_posts),
+                selectinload(UserModel.liked_stories),
+                selectinload(UserModel.liked_comments)
+            ).offset(offset).limit(limit)
             async with self.db_session as session:
                 try:
                     users = await session.execute(query)
-                    return users.scalars().all()
+                    return users.unique().scalars()
                 except Exception as e:
                     raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-    async def filter(self,limit:int,query:str):
-        query=select(User).filter(or_(User.username==query,User.fullname==query)).limit(limit)
+    async def filter(self,limit:int,q:str):
+        query=sql.select(UserModel).filter(
+            sql.or_(
+                UserModel.fullname.icontains==q,
+                UserModel.username.icontains==q,
+            )
+        ).limit(limit)
         async with self.db_session as session:
             users=await session.execute(query)
-            return users.scalars().all()
+            return users.unique().scalars()
 
-    async def read_one(self,user_id:UUID)->UserResponse:
-        query=select(User).filter(User.id==user_id)
+    async def read_one(self,user_id:UUID):
+        query=sql.select(UserModel).options(
+            selectinload(UserModel.user_posts),
+            selectinload(UserModel.user_comments),
+            selectinload(UserModel.user_stories),
+            selectinload(UserModel.liked_posts),
+            selectinload(UserModel.liked_stories),
+            selectinload(UserModel.liked_comments)
+        ).filter(UserModel.id==user_id)
+        async with self.db_session as session:
+            try:
+                user= await session.execute(query)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                return user.unique().scalar_one()
+            except Exception as e:
+                raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def read_by_username(self,username:str):
+        query=sql.select(UserModel).options(
+            selectinload(UserModel.user_posts),
+            selectinload(UserModel.user_comments),
+            selectinload(UserModel.user_stories),
+            selectinload(UserModel.liked_posts),
+            selectinload(UserModel.liked_stories),
+            selectinload(UserModel.liked_comments)
+        ).filter(UserModel.username==username)
+        async with self.db_session as session:
+            try:
+                user= await session.execute(query)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                return user.unique().scalar_one()
+            except Exception as e:
+                raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def read_by_email(self,email:EmailStr):
+        query=sql.select(UserModel).options(
+            selectinload(UserModel.user_posts),
+            selectinload(UserModel.user_comments),
+            selectinload(UserModel.user_stories),
+            selectinload(UserModel.liked_posts),
+            selectinload(UserModel.liked_stories),
+            selectinload(UserModel.liked_comments)
+        ).filter(UserModel.email==email)
         async with self.db_session as session:
             try:
                 user= await session.execute(query)
@@ -40,87 +100,68 @@ class UserCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    async def read_by_username(self,username:str)->UserResponse:
-        query=select(User).filter(User.username==username)
-        async with self.db_session as session:
-            try:
-                user= await session.execute(query)
-                if not user:
-                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                return user.scalar_one()
-            except Exception as e:
-                raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    async def read_by_email(self,email:EmailStr)->UserResponse:
-        query=select(User).filter(User.email==email)
-        async with self.db_session as session:
-            try:
-                user= await session.execute(query)
-                if not user:
-                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                return user.scalar_one()
-            except Exception as e:
-                raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    async def read_for_sign(self,data:UserSignin) -> UserResponse:
-        if '@' in data:
-            query=select(User).filter(User.email==data.username)
+    async def read_for_sign(self,data:UserSignin):
+        if '@' in data.username:
+            query=sql.select(UserModel).filter(UserModel.email==data.username)
         else:
-            query=select(User).filter(User.username==data.username)
+            query=sql.select(UserModel).filter(UserModel.username==data.username)
         async with self.db_session as session:
             try:
                 user= await session.execute(query)
                 user_data=user.scalar_one_or_none()
                 if not user_data:
                     raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                if not verify_password(data.password,user_data.password):
+                if not verify_password(data.password,str(user_data.password)):
                     raise HTTPException( detail="Invalid Credentials",status_code=status.HTTP_401_UNAUTHORIZED)
                 return user_data
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-
-
-
-    async def add(self,user_data:UserAdd)->UserResponse:
-        user=User(**user_data.dict())
-        user.password=hashed_password(user_data.password)
+    async def add(self,user_data:UserAdd):
+        user=UserModel(**user_data.dict())
+        user.password = hashed_password(user_data.password)
+        user.user_posts=[]
         async with self.db_session as session:
             try:
                 session.add(user)
                 await session.commit()
-                return UserResponse(**user.dict())
+                return user
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def change_password(self,user_id:UUID,password_data:UserPasswordChange):
-        query=select(User).filter(User.id==user_id)
+        query=sql.select(UserModel).filter(UserModel.id==user_id)
         async with self.db_session as session:
-            user = await session.execute(query)
+            result= await session.execute(query)
+            user=result.scalar_one_or_none()
             if not user:
                 raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-            newuser=User(**user.scalar_one())
-            if verify_password(password_data.current_password,newuser.password):
-                setattr(user,"password",password_data.new_password)
+            if verify_password(password_data.current_password,str(user.password)):
+                update_query = sql.update(UserModel).where(UserModel.id==user_id).values(
+                    password=password_data.new_password
+                )
+                await session.execute(update_query)
+                await session.commit()
+                return {"details":"password changed successfully."}
 
-    async def update(self,user_id:UUID,user_data:UserEdit)->UserResponse:
-        query=select(User).filter(User.id==user_id)
+    async def update(self,user_id:UUID,user_data:UserEdit):
+        query=sql.select(UserModel).filter(UserModel.id==user_id)
         try:
             async with self.db_session as session:
-                user= await session.execute(query)
+                result= await session.execute(query)
+                user=result.scalar_one_or_none()
                 if not user:
                     raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 for key,value in user_data.dict(exclude_unset=True).items():
                     setattr(user,key,value)
                 await session.commit()
-                return user.scalar_one()
+                return user
         except Exception as e:
             await session.rollback()
             raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,user_id:UUID):
-        query=select(User).filter(User.id==user_id)
+        query=sql.select(UserModel).filter(UserModel.id==user_id)
         async with self.db_session as session:
             try:
                 user=await session.execute(query)

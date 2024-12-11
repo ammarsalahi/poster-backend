@@ -5,10 +5,10 @@ import secrets
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from typing import Annotated
-from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm.mapper import reconstructor
 from cruds.user import UserCrud
-from core import get_db
+from .db import get_db
 
 
 SECRET_KEY=secrets.token_hex(62)

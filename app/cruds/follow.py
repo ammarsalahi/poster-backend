@@ -9,18 +9,16 @@ import sqlalchemy as sql
 from sqlalchemy.orm import selectinload
 
 
-class CommentCrud:
+class FollowCrud:
 
     def __init__(self,db_session:AsyncSession):
         self.db_session=db_session
 
     async def read_all(self,limit:int,offset:int):
-        query=sql.select(CommentModel).options(
-            selectinload(CommentModel.liked_by)
-        ).offset(offset).limit(limit)
+        query=sql.select(FollowModel).offset(offset).limit(limit)
         async with self.db_session as session:
-            comments= await session.execute(query)
-            return comments.unique().scalars()
+            follows= await session.execute(query)
+            return follows.scalars()
 
     async def read_one(self,comment_id:UUID):
         query=sql.select(CommentModel).options(
@@ -31,7 +29,7 @@ class CommentCrud:
                 comment=await session.execute(query)
                 if not comment:
                     raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                return comment.unique().scalar_one()
+                return comment.scalar_one()
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

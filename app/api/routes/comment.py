@@ -2,8 +2,8 @@ from fastapi import APIRouter,status,HTTPException
 from models import *
 from api.deps import *
 from cruds import CommentCrud
-
-
+from schemas.response import *
+from schemas.comment import *
 routers=APIRouter()
 
 
@@ -19,13 +19,13 @@ async def detail_comment(session:sessionDep,currentUser:userDep,comment_id:UUID)
     if currentUser:
         return await CommentCrud(session).read_one(comment_id)
 
-@routers.post("/",response_model=CommentResponse)
-async def create_comment(session:sessionDep,currentUser:userDep,comment_data:CommentAdd):
+@routers.post("/",response_model=CommentOnlyResponse)
+async def create_comment(session:sessionDep,currentUser:userDep,comment_data:CommentAddSchema):
     if currentUser:
         return await CommentCrud(session).add(comment_data)
 
 
-@routers.patch("/{id}",response_model=CommentResponse)
+@routers.patch("/{id}",response_model=CommentOnlyResponse)
 async def update_comment(session:sessionDep,currentUser:userDep,comment_id:UUID,comment_data:CommentEdit):
     comment = await CommentCrud(session).read_one(comment_id)
     if currentUser.is_superuser or currentUser.id==comment.user_id:

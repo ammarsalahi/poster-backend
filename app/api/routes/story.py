@@ -1,9 +1,10 @@
-from fastapi import APIRouter,status,HTTPException
+from fastapi import APIRouter,status,HTTPException,Form,File,UploadFile
 from models import *
 from api.deps import *
 from cruds import StoryCrud
-
-
+from schemas.response import *
+from schemas.story import *
+from utils.media import save_media
 routers=APIRouter()
 
 
@@ -25,16 +26,46 @@ async def detail_story_id(session:sessionDep,currentUser:userDep,story_id:str):
     if currentUser:
         return await StoryCrud(session).read_by_story_id(story_id)
 
-@routers.post("/",response_model=StoryResponse)
-async def create_story(session:sessionDep,currentUser:userDep,story_data:StoryAdd):
+@routers.post("/",response_model=StoryOnlyResponse)
+async def create_story(
+    session:sessionDep,
+    currentUser:userDep,
+    story_type:str=Form(None),
+    media_file:UploadFile=File(...)
+):
     if currentUser:
+        if not media_file:
+            raise HTTPException(
+               status_code=400, detail="No files were provided for upload."
+            )
+        file_str = await save_media(media_file)
+        story_data = StoryAddSchema(
+            story_type = story_type,
+            user_id=currentUser.id,
+            media_file = file_str
+        )
         return await StoryCrud(session).add(story_data)
 
 
-@routers.patch("/{id}",response_model=StoryResponse)
-async def update_story(session:sessionDep,currentUser:userDep,id:str,story_data:StoryEdit):
+@routers.patch("/{id}",response_model=StoryOnlyResponse)
+async def update_story(
+    session:sessionDep,
+    currentUser:userDep,
+    id:str,
+    story_type:str=Form(None),
+    media_file:UploadFile=File(None)
+):
     story=await StoryCrud(session).read_by_story_id(id)
     if currentUser.is_superuser or currentUser.id==story.user_id:
+        if not media_file:
+            raise HTTPException(
+               status_code=400, detail="No files were provided for upload."
+            )
+        file_str = await save_media(media_file)
+        story_data = StoryEditSchema(
+            story_type = story_type,
+            media_file = file_str
+        )
         return await StoryCrud(session).update(id,story_data)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
