@@ -15,7 +15,7 @@ from .table_relations import *
 class StoryModel(Base):
     __tablename__ = "stories"
 
-    story_id = Column(String, unique=True, default=lambda:get_uid())
+    story_id = Column(String, unique=True, default=get_uid)
     media_file = Column(String, nullable=False)
     views = Column(Integer, default=0)
     story_type = Column(String,default="public")

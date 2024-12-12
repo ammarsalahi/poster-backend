@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 class PostAddSchema(BaseModel):
     content:str
-    post_type:str
+    post_type:str|None=None
     user_id:UUID
 
 

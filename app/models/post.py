@@ -20,7 +20,7 @@ class PostModel(Base):
     post_id = Column(String,index=True,unique=True,default=get_uid)
     content = Column(String, nullable=False)
     views = Column(Integer, default=0)
-    post_type = Column(String, nullable=False)  # e.g., 'text', 'image', 'video'
+    post_type = Column(String,nullable=True,default="public")  # e.g., 'text', 'image', 'video'
     visible = Column(Boolean, default=True)
     #relations
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)

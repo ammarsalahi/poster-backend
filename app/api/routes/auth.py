@@ -1,7 +1,7 @@
 from fastapi import APIRouter,Response,status,HTTPException,Form,File,UploadFile
 from cruds import *
 from models import *
-from api.deps import sessionDep
+from api.deps import sessionDep,userDep
 from core.token import create_access_token
 from pydantic import EmailStr
 from schemas.validation import *
@@ -68,5 +68,15 @@ async def Verify(session:sessionDep,data:ValidationVerifySchema):
 
 
 @routers.post("/change_passowrd")
-async def ChangePassowrd(session:sessionDep,):
-    return {}
+async def ChangePassowrd(
+    session:sessionDep,
+    currentUser:userDep,
+    currentPassword:str=Form(),
+    newPassword:str=Form()
+):
+    if currentUser:
+        data = UserPasswordChangeSchema(
+            current_password=currentPassword,
+            new_password=newPassword
+        )
+        return await UserCrud(session).change_password(currentUser.id,data)

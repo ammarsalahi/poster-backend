@@ -35,7 +35,7 @@ async def create_post(
     session:sessionDep,
     currentUser:userDep,
     content:str=Form(),
-    post_type:str=Form(),
+    post_type:str=Form(None),
     upload_files:List[UploadFile]=File(...)
 ):
     if currentUser:

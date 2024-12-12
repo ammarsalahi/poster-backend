@@ -83,7 +83,7 @@ async def update_admin_user(
     is_verified:bool = Form(None),
     is_superuser:bool = Form(None)
 ):
-    if currentUser.is_superuser or currentUser.id==id:
+    if currentUser.is_superuser and currentUser.id==id:
         file_path=None
         if profile_image:
             file_path = await save_media(profile_image)
