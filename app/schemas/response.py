@@ -34,16 +34,14 @@ class UserResponse(BaseModel):
     is_superuser:bool
     created_at:datetime
     updated_at:datetime
-    user_posts:List["PostResponse"]
-    user_comments:List["CommentResponse"]
-    user_stories:List["StoryResponse"]
-    followers:List["FollowResponse"]
-    followings:List["FollowResponse"]
-
-
-    # liked_posts:List["PostResponse"]|None
-    # liked_comments:List["CommentResponse"]|None
-    # liked_stories:List["StoryResponse"]|None
+    # user_posts:List["PostOnlyResponse"]
+    # user_comments:List["CommentOnlyResponse"]
+    # user_stories:List["StoryOnlyResponse"]
+    # followers:List["FollowResponse"]
+    # followings:List["FollowResponse"]
+    # liked_posts:List["PostOnlyResponse"]
+    # liked_comments:List["CommentOnlyResponse"]
+    # liked_stories:List["StoryOnlyResponse"]
 
 
 
@@ -83,7 +81,8 @@ class StoryResponse(BaseModel):
     user_id:UUID
     created_at:datetime
     updated_at:datetime
-    # story_liked_users:List["UserResponse"]
+    liked_by:List["UserResponse"]
+
 
 class PostResponse(BaseModel):
     id:UUID
@@ -94,7 +93,8 @@ class PostResponse(BaseModel):
     visible:bool
     user_id:UUID
     medias:List["MediaResponse"]
-    # post_comments:List["CommentResponse"]
+    liked_by:List["UserOnlyResponse"]
+    comments:List["CommentOnlyResponse"]
     # post_liked_users:List["UserResponse"]
     #
     # model_config=ConfigDict(

@@ -18,7 +18,8 @@ class StoryModel(Base):
     story_id = Column(String, unique=True, default=lambda:get_uid())
     media_file = Column(String, nullable=False)
     views = Column(Integer, default=0)
+    story_type = Column(String,default="public")
     #relations
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    user = relationship("UserModel", back_populates="stories")
+    user = relationship("UserModel", back_populates="user_stories")
     liked_by = relationship("UserModel",secondary=liked_stories_table,back_populates="liked_stories")

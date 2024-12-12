@@ -61,7 +61,7 @@ class StoryCrud:
 
             
 
-    async def update(self,story_id:str,story_data:StoryEdit):
+    async def update(self,story_id:str,story_data:StoryEditSchema):
         query = sql.select(StoryModel).filter(StoryModel.story_id == story_id)
         try:
             async with self.db_session as session:

@@ -16,11 +16,11 @@ class CommentModel(Base):
 
     content = Column(String, nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.post_id"), nullable=False)
+    post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id"), nullable=False)
     visible = Column(Boolean, default=True)
 
     # Relationships with UserModel and PostModel
-    user = relationship("UserModel", back_populates="comments")
+    user = relationship("UserModel", back_populates="user_comments")
     post = relationship("PostModel", back_populates="comments")
 
-    liked_by = relationship("UserModel",secondary=liked_comments_table,back_populates="liked_comments",lazy=True)
+    liked_by = relationship("UserModel",secondary=liked_comments_table,back_populates="liked_comments")

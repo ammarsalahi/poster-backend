@@ -25,7 +25,9 @@ class UserCrud:
                 selectinload(UserModel.user_stories),
                 selectinload(UserModel.liked_posts),
                 selectinload(UserModel.liked_stories),
-                selectinload(UserModel.liked_comments)
+                selectinload(UserModel.liked_comments),
+                selectinload(UserModel.followers),
+                selectinload(UserModel.followings)
             ).offset(offset).limit(limit)
             async with self.db_session as session:
                 try:
@@ -53,7 +55,9 @@ class UserCrud:
             selectinload(UserModel.user_stories),
             selectinload(UserModel.liked_posts),
             selectinload(UserModel.liked_stories),
-            selectinload(UserModel.liked_comments)
+            selectinload(UserModel.liked_comments),
+            selectinload(UserModel.followers),
+            selectinload(UserModel.followings)
         ).filter(UserModel.id==user_id)
         async with self.db_session as session:
             try:
@@ -71,7 +75,9 @@ class UserCrud:
             selectinload(UserModel.user_stories),
             selectinload(UserModel.liked_posts),
             selectinload(UserModel.liked_stories),
-            selectinload(UserModel.liked_comments)
+            selectinload(UserModel.liked_comments),
+            selectinload(UserModel.followers),
+            selectinload(UserModel.followings)
         ).filter(UserModel.username==username)
         async with self.db_session as session:
             try:
@@ -89,7 +95,9 @@ class UserCrud:
             selectinload(UserModel.user_stories),
             selectinload(UserModel.liked_posts),
             selectinload(UserModel.liked_stories),
-            selectinload(UserModel.liked_comments)
+            selectinload(UserModel.liked_comments),
+            selectinload(UserModel.followers),
+            selectinload(UserModel.followings)
         ).filter(UserModel.email==email)
         async with self.db_session as session:
             try:
@@ -100,7 +108,7 @@ class UserCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    async def read_for_sign(self,data:UserSignin):
+    async def read_for_sign(self,data:UserSigninSchema):
         if '@' in data.username:
             query=sql.select(UserModel).filter(UserModel.email==data.username)
         else:
@@ -117,7 +125,7 @@ class UserCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    async def add(self,user_data:UserAdd):
+    async def add(self,user_data:UserAddSchema|UserAddAdminSchema):
         user=UserModel(**user_data.dict())
         user.password = hashed_password(user_data.password)
         user.user_posts=[]
@@ -129,7 +137,7 @@ class UserCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    async def change_password(self,user_id:UUID,password_data:UserPasswordChange):
+    async def change_password(self,user_id:UUID,password_data:UserPasswordChangeSchema):
         query=sql.select(UserModel).filter(UserModel.id==user_id)
         async with self.db_session as session:
             result= await session.execute(query)
@@ -144,7 +152,7 @@ class UserCrud:
                 await session.commit()
                 return {"details":"password changed successfully."}
 
-    async def update(self,user_id:UUID,user_data:UserEdit):
+    async def update(self,user_id:UUID,user_data:UserEditSchema):
         query=sql.select(UserModel).filter(UserModel.id==user_id)
         try:
             async with self.db_session as session:
@@ -153,7 +161,25 @@ class UserCrud:
                 if not user:
                     raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 for key,value in user_data.dict(exclude_unset=True).items():
-                    setattr(user,key,value)
+                    if value is not None:
+                        setattr(user,key,value)
+                await session.commit()
+                return user
+        except Exception as e:
+            await session.rollback()
+            raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
+
+    async def update_admin(self,user_id:UUID,user_data:UserEditAdminSchema):
+        query=sql.select(UserModel).filter(UserModel.id==user_id)
+        try:
+            async with self.db_session as session:
+                result= await session.execute(query)
+                user=result.scalar_one_or_none()
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                for key,value in user_data.dict(exclude_unset=True).items():
+                    if value is not None:
+                        setattr(user,key,value)
                 await session.commit()
                 return user
         except Exception as e:
@@ -171,66 +197,3 @@ class UserCrud:
                     await session.commit()
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # if is_superuser:
-        #     query=sql.select(UserModel).offset(offset).limit(limit)
-        #     async with self.db_session as session:
-        #         users= await session.execute(query)
-        #         return users.scalars()
-        # else:
-        #     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-    # async def read_one(self,user_id:UUID):
-    #     query=sql.select(UserModel).filter(UserModel.id==id)
-    #     async with self.db_session as session:
-    #         user=await session.execute(query)
-    #         if user:
-    #             return user.scalar()
-    #         else:
-    #             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    # async def read_by_username(self,username:str):
-    #     query=sql.select(UserModel).filter(UserModel.username==username)
-    #     async with self.db_session as session:
-    #         user=await session.execute(query)
-    #         return user.scalar()
-
-    # async def add(self,user_data:UserCreateSchema):
-    #     user=UserModel(**user_data.dict())
-    #     user.password=hashed_password(user_data.password)
-    #     async with self.db_session as session:
-    #         session.add(user)
-    #         await session.commit()
-    #     return user
-
-
-    # async def update(self,user_id:UUID,user_data:UserUpdateSchema):
-    #     query=sql.select(UserModel).filter(UserModel.id==user_id)
-    #     try:
-    #         async with self.db_session as session:
-    #             user=session.execute(session)
-    #             if user:
-    #                 for key , value in user_data.dict(exclude_unset=True).items():
-    #                     setattr(user,key,value)
-    #                 await session.commit()
-    #                 return user
-    #             else:
-    #                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
-    #     except Exception as e:
-    #         await session.rollback()
-    #         raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
-
-    # async def change_password(self,user_id:UUID,password:str):
-    #     query=sql.select(UserModel).filter(UserModel.id==user_id)
-    #     async with self.db_session as session:
-    #         user=await session.execute(query)
-    #         if user:
-    #             setattr(user,"password",hashed_password(password))
-    #             await session.commit()
-    #             return user
-    #         else:
-    #             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

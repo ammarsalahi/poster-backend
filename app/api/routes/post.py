@@ -33,13 +33,12 @@ async def detail_post_id(session:sessionDep,currentUser:userDep,post_id:str):
 @routers.post("/",response_model=PostResponse)
 async def create_post(
     session:sessionDep,
-    # currentUser:userDep,
+    currentUser:userDep,
     content:str=Form(),
     post_type:str=Form(),
-    user_id:UUID=Form(),
     upload_files:List[UploadFile]=File(...)
 ):
-    if True:
+    if currentUser:
         crud=PostCrud(session)
         if not upload_files:
             raise HTTPException(
@@ -49,7 +48,7 @@ async def create_post(
         for upload in upload_files:
             file_path = await save_media(upload)
             medias.append(file_path)
-        post_data=PostAddSchema(content=content,post_type=post_type,user_id=user_id)
+        post_data=PostAddSchema(content=content,post_type=post_type,user_id=currentUser.id)
         post =await crud.add(post_data,medias)
         return await crud.read_one(post.id)
 
@@ -78,7 +77,8 @@ async def update_post(
             views=views,
             visible=visible
         )
-        return await PostCrud(session).update(post_id,post,medias)
+        up_post=await PostCrud(session).update(post_id,post,medias)
+        return post
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 

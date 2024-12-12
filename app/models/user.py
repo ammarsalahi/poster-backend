@@ -15,7 +15,7 @@ class UserModel(Base):
     is_active = Column(Boolean,default=False)
     is_verified = Column(Boolean,default=False)
     is_superuser = Column(Boolean,default=False)
-    profile_image = Column(String,nullable=True)
+    profile_image = Column(String,default="noimage")
     profile_type = Column(String,nullable=True,default="public")
 
     #relations
@@ -26,7 +26,7 @@ class UserModel(Base):
     user_posts = relationship("PostModel", back_populates="user",lazy=True)
     user_comments = relationship("CommentModel", back_populates="user",lazy=True)
     user_stories = relationship("StoryModel", back_populates="user",lazy=True)
-   
+
    #like relations
     liked_posts = relationship("PostModel",secondary=liked_posts_table,back_populates="liked_by",lazy=True)
     liked_stories = relationship("StoryModel",secondary=liked_stories_table,back_populates="liked_by",lazy=True)

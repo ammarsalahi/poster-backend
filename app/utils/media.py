@@ -1,30 +1,30 @@
 import os
 from fastapi import UploadFile
 from strawberry.file_uploads import Upload
-
+from pathlib import Path
+# Define base and media directories
+BASE_DIR = Path(__file__).resolve().parent.parent  # Adjust to your project structure
+MEDIA_DIR = BASE_DIR / "media"
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)  # Ensure the `media` directory exists
 
 async def save_media(mediafile: UploadFile) -> str:
     try:
-        # Define the upload directory
-        upload_dir = "media"
-        show_upload_dir="media"
-        os.makedirs(name=upload_dir, exist_ok=True)
+        file_path :str = f"{MEDIA_DIR} / {mediafile.filename}"
 
-        # Generate a unique file name to prevent overwrites
-        # unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_path = os.path.join(show_upload_dir, mediafile.filename)
         # Save the file
         with open(file_path, "wb") as buffer:
             buffer.write(await mediafile.read())
-        print(file_path)
-        return file_path
+
+        # Return the file path as a string
+        return str(file_path)
     except Exception as e:
         raise ValueError(f"Failed to save media: {e}")
 
 async def save_graph_media(mediafile:Upload)->str:
-    upload_dir="media"
-    os.makedirs(name=upload_dir,exist_ok=True)
-    file_path:str= os.path.join(upload_dir,mediafile.filename)
-    with open(file_path,"wb") as buffer:
-        buffer.write(await mediafile.read())
-    return file_path
+    try:
+        file_path:str= f"{MEDIA_DIR} / {mediafile.filename}"
+        with open(file_path,"wb") as buffer:
+            buffer.write(await mediafile.read())
+        return file_path
+    except Exception as e:
+        raise ValueError(f"Failed to save media: {e}")

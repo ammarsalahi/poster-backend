@@ -1,9 +1,12 @@
-from fastapi import APIRouter,status,HTTPException
+from fastapi import APIRouter,status,HTTPException,Form
 from models import *
 from api.deps import *
 from cruds import CommentCrud
 from schemas.response import *
 from schemas.comment import *
+from uuid import UUID
+
+
 routers=APIRouter()
 
 
@@ -20,15 +23,31 @@ async def detail_comment(session:sessionDep,currentUser:userDep,comment_id:UUID)
         return await CommentCrud(session).read_one(comment_id)
 
 @routers.post("/",response_model=CommentOnlyResponse)
-async def create_comment(session:sessionDep,currentUser:userDep,comment_data:CommentAddSchema):
+async def create_comment(
+    session:sessionDep,
+    currentUser:userDep,
+    content:str=Form(),
+    post_id:UUID=Form()
+):
     if currentUser:
-        return await CommentCrud(session).add(comment_data)
+        data=CommentAddSchema(
+            content=content,
+            post_id=post_id,
+            user_id=currentUser.id
+        )
+        return await CommentCrud(session).add(data)
 
 
 @routers.patch("/{id}",response_model=CommentOnlyResponse)
-async def update_comment(session:sessionDep,currentUser:userDep,comment_id:UUID,comment_data:CommentEdit):
+async def update_comment(
+    session:sessionDep,
+    currentUser:userDep,
+    comment_id:UUID,
+    content:str=Form()
+):
     comment = await CommentCrud(session).read_one(comment_id)
     if currentUser.is_superuser or currentUser.id==comment.user_id:
+        comment_data=CommentEditSchema(content=content)
         return await CommentCrud(session).update(comment_id,comment_data)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 

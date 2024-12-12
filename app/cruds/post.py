@@ -46,7 +46,11 @@ class PostCrud:
 
 
     async def read_by_post_id(self,post_id:str):
-        query=sql.select(PostModel).filter(PostModel.post_id==post_id)
+        query=sql.select(PostModel).options(
+            selectinload(PostModel.medias),
+            selectinload(PostModel.liked_by),
+            selectinload(PostModel.comments)
+        ).filter(PostModel.post_id==post_id)
         async with self.db_session as session:
             try:
                 post=await session.execute(query)

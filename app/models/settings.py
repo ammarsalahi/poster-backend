@@ -8,7 +8,7 @@ class SettingsModel(Base):
     __tablename__ = "settings"
 
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    theme = Column(String, nullable=False)
+    theme = Column(String, default="dark")
     is_two_factor_auth = Column(Boolean, default=False)
     otp_qrcode_image = Column(String, nullable=True)
 

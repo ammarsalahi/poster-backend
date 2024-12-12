@@ -1,9 +1,10 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select,or_
+from sqlalchemy.ext.asyncio.session import AsyncSession
+import sqlalchemy as sql
 from fastapi import HTTPException,status
 from models import *
 from typing import List
 from schemas.response import *
+from schemas.settings import *
 
 class UserSettingsCrud:
 
@@ -11,13 +12,13 @@ class UserSettingsCrud:
         self.db_session=db_session
 
     async def read_all(self,limit:int,offset:int):
-        query=select(SettingsModel).offset(offset).limit(limit)
+        query=sql.select(SettingsModel).offset(offset).limit(limit)
         async with self.db_session as session:
             setts = await session.execute(query)
             return setts.scalars()
 
-    async def read_one(self,id:UUID) -> SettingsResponse:
-        query = select(Settings).filter(Settings.id==id)
+    async def read_one(self,id:UUID):
+        query = sql.select(Settings).filter(Settings.id==id)
         async with self.db_session as session:
             try:
                 sett=await session.execute(query)
@@ -27,8 +28,8 @@ class UserSettingsCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    async def read_by_user_id(self,user_id:UUID) -> SettingsResponse:
-        query = select(Settings).filter(Settings.user_id==user_id)
+    async def read_by_user_id(self,user_id:UUID):
+        query = sql.select(Settings).filter(Settings.user_id==user_id)
         async with self.db_session as session:
             try:
                 sett=await session.execute(query)
@@ -38,18 +39,18 @@ class UserSettingsCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    async def add(self,set_data:SettingsAdd) -> SettingsResponse:
+    async def add(self,set_data:SettingAddSchema):
         sett = Settings(**set_data.dict())
         async with self.db_session as session:
             try:
                 session.add(sett)
                 await session.commit()
-                return SettingsResponse(**sett.dict())
+                return sett
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    async def update(self,id:UUID,sett_data:SettingsEdit) -> SettingsResponse:
-        query = select(Settings).filter(Settings.id == id)
+    async def update(self,id:UUID,sett_data:SettingEditSchema):
+        query = sql.select(Settings).filter(Settings.id == id)
         try:
             async with self.db_session as session:
                 result = await session.execute(query)
@@ -66,7 +67,7 @@ class UserSettingsCrud:
             raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,id:UUID):
-        query = select(Settings).filter(Settings.id == id)
+        query = sql.select(Settings).filter(Settings.id == id)
         async with self.db_session as session:
             sett = session.execute(query)
             if sett:

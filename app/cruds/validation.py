@@ -63,7 +63,7 @@ class ValidationCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    async def add(self,valid_data:ValidationAdd):
+    async def add(self,valid_data:ValidationAddSchema):
         valid = ValidationModel(**valid_data.dict())
         async with self.db_session as session:
             try:
