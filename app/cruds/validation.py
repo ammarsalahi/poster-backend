@@ -69,6 +69,7 @@ class ValidationCrud:
             try:
                 session.add(valid)
                 await session.commit()
+                await send_validation_email(valid.email,valid.code)
                 return valid
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
