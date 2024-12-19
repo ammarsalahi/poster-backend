@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from pydantic import EmailStr
 from jinja2 import Environment,FileSystemLoader
 import aiosmtplib
-from core.config import settings
+from app.core.config import settings
 
 
 jinja2_env = Environment(loader=FileSystemLoader("templates"))

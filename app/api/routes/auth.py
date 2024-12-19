@@ -1,14 +1,15 @@
 from fastapi import APIRouter,Response,status,HTTPException,Form,File,UploadFile
-from cruds import *
-from models import *
-from api.deps import sessionDep,userDep
-from core.token import create_access_token
+from app.cruds import *
+from app.models import *
+from app.api.deps import sessionDep,userDep
+from app.core.token import create_access_token
 from pydantic import EmailStr
-from schemas.validation import *
-from schemas.user import *
-from utils.media import save_media
-routers=APIRouter()
+from app.schemas.validation import *
+from app.schemas.user import *
+from app.utils.media import save_media
 
+
+routers=APIRouter()
 
 
 @routers.post("/signin",response_model=UserTokenSchema)

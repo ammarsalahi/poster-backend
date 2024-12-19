@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from api import app_router
-from core.db import init_db
-from core import settings
+from app.api.main import app_router
+# from app.core.db import init_db
+from app.core import settings
 from fastapi.staticfiles import StaticFiles
-from core.config import create_folder
+from app.core.config import create_folder
 
 
 app = FastAPI(

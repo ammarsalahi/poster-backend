@@ -1,10 +1,10 @@
 from fastapi import APIRouter,status,HTTPException,Form,File,UploadFile
-from models import *
-from api.deps import *
-from cruds import StoryCrud
-from schemas.response import *
-from schemas.story import *
-from utils.media import save_media
+from app.models import *
+from app.api.deps import *
+from app.cruds import StoryCrud
+from app.schemas.response import *
+from app.schemas.story import *
+from app.utils.media import save_media
 
 routers=APIRouter()
 

@@ -1,10 +1,10 @@
 from fastapi import HTTPException,status
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from schemas.media import *
-from models import *
+from app.schemas.media import *
+from app.models import *
 from typing import List
 from uuid import UUID
-from schemas.response import *
+from app.schemas.response import *
 import sqlalchemy as sql
 
 class MediaCrud:

@@ -7,9 +7,9 @@ from jwt.exceptions import InvalidTokenError
 from typing import Annotated
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm.mapper import reconstructor
-from cruds.user import UserCrud
+from app.cruds.user import UserCrud
 from .db import get_db
-from core.config import settings
+from app.core.config import settings
 
 SECRET_KEY=secrets.token_hex(62)
 ALGORITHM = "HS256"

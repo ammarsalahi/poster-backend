@@ -1,9 +1,9 @@
 from fastapi import APIRouter,status,HTTPException
-from models import *
-from api.deps import *
-from cruds import UserSettingsCrud
-from schemas.response import *
-from schemas.settings import *
+from app.models import *
+from app.api.deps import *
+from app.cruds import UserSettingsCrud
+from app.schemas.response import *
+from app.schemas.settings import *
 
 
 

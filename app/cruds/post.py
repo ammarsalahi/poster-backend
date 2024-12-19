@@ -3,10 +3,10 @@ from typing import List
 from uuid import UUID
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
-from utils.uid_tool import get_uid
-from schemas.post import *
-from models import *
-from schemas.response import *
+from app.utils.uid_tool import get_uid
+from app.schemas.post import *
+from app.models import *
+from app.schemas.response import *
 import sqlalchemy as sql
 
 

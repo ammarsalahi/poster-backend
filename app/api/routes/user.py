@@ -1,11 +1,11 @@
 from fastapi import APIRouter,Depends,status,HTTPException,Form,File,UploadFile
-from models import *
+from app.models import *
 from typing import List,Annotated
-from cruds import UserCrud
-from api.deps import sessionDep,userDep
-from schemas.response import *
-from schemas.user import *
-from utils.media import save_media
+from app.cruds import UserCrud
+from app.api.deps import sessionDep,userDep
+from app.schemas.response import *
+from app.schemas.user import *
+from app.utils.media import save_media
 
 
 routers=APIRouter()

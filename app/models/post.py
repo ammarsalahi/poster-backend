@@ -1,4 +1,4 @@
-from core import Base
+from app.core import Base
 from sqlalchemy import (
     UUID,
     Column,
@@ -11,8 +11,9 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
-from utils.uid_tool import get_uid
+from app.utils.uid_tool import get_uid
 from .table_relations import *
+
 
 class PostModel(Base):
     __tablename__ = "posts"
@@ -28,3 +29,4 @@ class PostModel(Base):
     medias = relationship("MediaModel", back_populates="post",lazy=True)
     comments= relationship("CommentModel", back_populates="post",lazy=True)
     liked_by = relationship( "UserModel",secondary=liked_posts_table,back_populates="liked_posts")
+    saved_by = relationship( "UserModel",secondary=saved_posts_table,back_populates="saved_posts")

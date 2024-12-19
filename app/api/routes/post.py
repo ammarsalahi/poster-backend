@@ -1,13 +1,13 @@
 from typing import Optional
 from fastapi import APIRouter, File, Form, UploadFile,status,HTTPException
-from schemas.media import MediaAddSchema
-from schemas.comment import *
-from schemas.post import *
-from utils.media import save_media
-from models import *
-from api.deps import *
-from cruds import PostCrud
-from schemas.response import *
+from app.schemas.media import MediaAddSchema
+from app.schemas.comment import *
+from app.schemas.post import *
+from app.utils.media import save_media
+from app.models import *
+from app.api.deps import *
+from app.cruds import PostCrud
+from app.schemas.response import *
 
 
 routers=APIRouter()

@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy import Column, ForeignKey, String, Boolean, UUID
 from sqlalchemy.orm import relationship
-from core import Base
+from app.core import Base
 
 
 class SettingsModel(Base):

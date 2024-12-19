@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 import sqlalchemy as sql
 from fastapi import HTTPException,status
-from models import *
+from app.models import *
 from typing import List
-from schemas.response import *
-from schemas.settings import *
+from app.schemas.response import *
+from app.schemas.settings import *
 
 class UserSettingsCrud:
 
@@ -27,7 +27,7 @@ class UserSettingsCrud:
                 return sett.scalar_one()
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     async def read_by_user_id(self,user_id:UUID):
         query = sql.select(Settings).filter(Settings.user_id==user_id)
         async with self.db_session as session:

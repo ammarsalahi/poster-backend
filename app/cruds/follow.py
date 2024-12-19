@@ -2,9 +2,9 @@
 from fastapi import HTTPException,status
 from uuid import UUID
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from schemas.comment import *
-from models import *
-from schemas.response import *
+from app.schemas.comment import *
+from app.models import *
+from app.schemas.response import *
 import sqlalchemy as sql
 from sqlalchemy.orm import selectinload
 

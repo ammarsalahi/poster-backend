@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from api.routes import *
-from api.graphqls import Mutation,Query
+from app.api.routes import *
+from app.api.graphqls import Mutation,Query
 from .deps import sessionDep
 import strawberry
 from strawberry.fastapi import GraphQLRouter

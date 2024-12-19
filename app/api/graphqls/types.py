@@ -4,12 +4,11 @@ from typing_extensions import Optional
 from uuid import UUID
 from pydantic import EmailStr
 import strawberry
-from api.deps import sessionDep,userDep
+from app.api.deps import sessionDep,userDep
 from strawberry.types import Info
 from fastapi import HTTPException,status
+from app.models import *
 
-
-from models import *
 
 def get_session(info: Info) -> sessionDep:
     return info.context["session"]

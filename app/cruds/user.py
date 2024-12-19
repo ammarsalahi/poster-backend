@@ -1,13 +1,13 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
-from models import *
+from app.models import *
 from fastapi import HTTPException,status
 from uuid import UUID
-from core.security import hashed_password,verify_password
+from app.core.security import hashed_password,verify_password
 from typing import List
 from pydantic import EmailStr
-from schemas.response import *
-from schemas.user import *
+from app.schemas.response import *
+from app.schemas.user import *
 import sqlalchemy as sql
 
 

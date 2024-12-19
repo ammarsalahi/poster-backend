@@ -1,9 +1,9 @@
 from fastapi import APIRouter,status,HTTPException
-from schemas.media import *
-from models import *
-from api.deps import *
-from cruds import MediaCrud
-from schemas.response import *
+from app.schemas.media import *
+from app.models import *
+from app.api.deps import *
+from app.cruds import MediaCrud
+from app.schemas.response import *
 
 
 routers=APIRouter()

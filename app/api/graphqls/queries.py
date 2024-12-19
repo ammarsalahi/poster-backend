@@ -1,11 +1,12 @@
 from uuid import UUID
 import strawberry
 from .types import *
-from api.deps import *
-from cruds import *
+from app.api.deps import *
+from app.cruds import *
 from fastapi import HTTPException
 from typing import List,Optional
 from strawberry.types import Info
+
 
 @strawberry.type
 class Query:

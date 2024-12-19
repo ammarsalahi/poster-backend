@@ -1,4 +1,4 @@
-from core import Base
+from app.core import Base
 from sqlalchemy import (
     UUID,
     Column,
@@ -10,6 +10,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from .table_relations import *
+
 
 class CommentModel(Base):
     __tablename__ = "comments"

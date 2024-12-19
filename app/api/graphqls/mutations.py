@@ -1,18 +1,18 @@
 import os
 from typing import Optional
 import strawberry
-from cruds import *
+from app.cruds import *
 from .types import *
-from api.deps import *
+from app.api.deps import *
 from strawberry.types import Info
-from models import *
+from app.models import *
 from fastapi import UploadFile
 from typing import List
-from utils.media import save_graph_media
+from app.utils.media import save_graph_media
 from strawberry.file_uploads import Upload
-from schemas.post import *
-from schemas.comment import *
-from schemas.story import *
+from app.schemas.post import *
+from app.schemas.comment import *
+from app.schemas.story import *
 
 @strawberry.type
 class Mutation:

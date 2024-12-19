@@ -1,7 +1,8 @@
 import uuid
 from sqlalchemy import Column, String, UUID, ForeignKey
 from sqlalchemy.orm import relationship
-from core import Base
+from app.core import Base
+
 
 class MediaModel(Base):
     __tablename__ = "medias"

@@ -1,6 +1,6 @@
 from fastapi import UploadFile
 from strawberry.file_uploads import Upload
-from core.config import settings
+from app.core.config import settings
 import os
 
 

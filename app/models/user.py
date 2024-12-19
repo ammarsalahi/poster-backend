@@ -1,6 +1,6 @@
 from sqlalchemy import UUID, Boolean, Column, DateTime,Table,ForeignKey, String
 from sqlalchemy.orm import relationship
-from core import Base
+from app.core import Base
 from .table_relations import *
 
 
@@ -31,3 +31,7 @@ class UserModel(Base):
     liked_posts = relationship("PostModel",secondary=liked_posts_table,back_populates="liked_by",lazy=True)
     liked_stories = relationship("StoryModel",secondary=liked_stories_table,back_populates="liked_by",lazy=True)
     liked_comments = relationship("CommentModel",secondary=liked_comments_table,back_populates="liked_by",lazy=True)
+
+# saved relations
+    saved_posts = relationship("PostModel",secondary=saved_posts_table,back_populates="saved_by",lazy=True)
+    saved_stories = relationship("StoryModel",secondary=saved_stories_table,back_populates="saved_by",lazy=True)

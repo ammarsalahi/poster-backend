@@ -1,10 +1,10 @@
 from fastapi import APIRouter,status,HTTPException
-from models import *
-from api.deps import *
-from cruds import ValidationCrud
+from app.models import *
+from app.api.deps import *
+from app.cruds import ValidationCrud
 from pydantic import EmailStr
-from schemas.response import *
-from schemas.validation import *
+from app.schemas.response import *
+from app.schemas.validation import *
 
 
 routers=APIRouter()

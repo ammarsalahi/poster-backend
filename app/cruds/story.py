@@ -1,10 +1,10 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from typing import List
-from models import *
+from app.models import *
 from fastapi import HTTPException,status
-from schemas.response import *
+from app.schemas.response import *
 import sqlalchemy as sql
-from schemas.story import *
+from app.schemas.story import *
 from sqlalchemy.orm import selectinload
 
 class StoryCrud:
@@ -59,7 +59,7 @@ class StoryCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            
+
 
     async def update(self,story_id:str,story_data:StoryEditSchema):
         query = sql.select(StoryModel).filter(StoryModel.story_id == story_id)
@@ -83,9 +83,6 @@ class StoryCrud:
             story = session.execute(query)
             if not story:
                 raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-            
+
             await session.delete(story)
             await session.commit()
-
-    
-           

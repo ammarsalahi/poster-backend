@@ -1,11 +1,11 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
-import sqlalchemy as sql 
+import sqlalchemy as sql
 from fastapi import HTTPException,status
 from typing import List
-from models import *
+from app.models import *
 from pydantic import EmailStr
-from schemas.response import *
-from schemas.validation import *
+from app.schemas.response import *
+from app.schemas.validation import *
 
 class ValidationCrud:
 
@@ -39,7 +39,7 @@ class ValidationCrud:
                 return valid.scalar_one()
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     async def read_verify(self,valid_data:ValidationVerifySchema):
         query = sql.select(ValidationModel).filter(
             ValidationModel.email==str(email),
@@ -62,7 +62,7 @@ class ValidationCrud:
                 return valid
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     async def add(self,valid_data:ValidationAddSchema):
         valid = ValidationModel(**valid_data.dict())
         async with self.db_session as session:

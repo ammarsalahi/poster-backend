@@ -1,9 +1,9 @@
 from fastapi import APIRouter,status,HTTPException,Form
-from models import *
-from api.deps import *
-from cruds import CommentCrud
-from schemas.response import *
-from schemas.comment import *
+from app.models import *
+from app.api.deps import *
+from app.cruds import CommentCrud
+from app.schemas.response import *
+from app.schemas.comment import *
 from uuid import UUID
 
 
