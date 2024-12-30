@@ -9,6 +9,7 @@ from sqlalchemy import UUID
 from sqlalchemy.orm import DeclarativeBase
 import asyncio
 
+
 DATABASE_URL="sqlite+aiosqlite:///../data.sqlite"
 
 engine=create_async_engine(

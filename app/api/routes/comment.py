@@ -18,9 +18,15 @@ async def list_comments(session:sessionDep,currentUser:userDep,limit:int=10,offs
 
 
 @routers.get("/{id}",response_model=CommentResponse)
-async def detail_comment(session:sessionDep,currentUser:userDep,comment_id:UUID):
+async def detail_comment(session:sessionDep,currentUser:userDep,id:UUID):
     if currentUser:
-        return await CommentCrud(session).read_one(comment_id)
+        return await CommentCrud(session).read_one(id)
+
+@routers.get("/user",response_model=List[CommentResponse])
+async def detail_user_comment(session:sessionDep,currentUser:userDep):
+    if currentUser:
+        return await CommentCrud(session).read_by_user_id(currentUser.id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.post("/",response_model=CommentOnlyResponse)
 async def create_comment(
@@ -57,4 +63,16 @@ async def delete_comment(session:sessionDep,currentUser:userDep,comment_id:UUID)
     comment = await CommentCrud(session).read_one(comment_id)
     if currentUser.is_superuser or currentUser.id==comment.user_id:
         return await CommentCrud(session).delete(comment_id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
+@routers.post("/like")
+async def add_like_comment(session:sessionDep,currentUser:userDep,id:UUID):
+    if currentUser:
+        return await CommentCrud(session).like_comment(id,currentUser.id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
+@routers.post("/unlike")
+async def remove_like_comment(session:sessionDep,currentUser:userDep,id:UUID):
+    if currentUser:
+        return await CommentCrud(session).unlike_comment(id,currentUser.id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")

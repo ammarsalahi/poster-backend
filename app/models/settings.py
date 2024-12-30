@@ -12,4 +12,4 @@ class SettingsModel(Base):
     is_two_factor_auth = Column(Boolean, default=False)
     otp_qrcode_image = Column(String, nullable=True)
 
-    user = relationship("UserModel", back_populates="settings")
+    user = relationship("UserModel",primaryjoin="SettingsModel.user_id==UserModel.id", back_populates="settings")

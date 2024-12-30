@@ -29,6 +29,13 @@ async def detail_post(session:sessionDep,currentUser:userDep,id:UUID):
 async def detail_post_id(session:sessionDep,currentUser:userDep,post_id:str):
     if currentUser:
         return await PostCrud(session).read_by_post_id(post_id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
+@routers.get("/user/",response_model=List[PostResponse],description="get user posts")
+async def detail_user_posts(session:sessionDep,currentUser:userDep):
+    if currentUser:
+        return await PostCrud(session).read_by_user_id(currentUser.id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.post("/",response_model=PostResponse)
 async def create_post(
@@ -51,6 +58,8 @@ async def create_post(
         post_data=PostAddSchema(content=content,post_type=post_type,user_id=currentUser.id)
         post =await crud.add(post_data,medias)
         return await crud.read_one(post.id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
 
 
 
@@ -87,4 +96,17 @@ async def delete_post(session:sessionDep,currentUser:userDep,id:UUID):
     post = await PostCrud(session).read_one(id)
     if currentUser.is_superuser or currentUser.id==post.user_id:
         return await PostCrud(session).delete(id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
+
+@routers.post("/like/")
+async def add_like_post(session:sessionDep,currentUser:userDep,id:UUID):
+    if currentUser:
+        return await PostCrud(session).like_post(id,currentUser.id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
+@routers.post("/unlike/")
+async def remove_like_post(session:sessionDep,currentUser:userDep,id:UUID):
+    if currentUser:
+        return await PostCrud(session).unlike_post(id,currentUser.id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")

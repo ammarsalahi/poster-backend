@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Response,status,HTTPException,Form,File,UploadFile
+from fastapi import APIRouter,Response,status,HTTPException,Form,File,UploadFile,Request
 from app.cruds import *
 from app.models import *
 from app.api.deps import sessionDep,userDep
@@ -7,7 +7,8 @@ from pydantic import EmailStr
 from app.schemas.validation import *
 from app.schemas.user import *
 from app.utils.media import save_media
-
+from app.utils.oauth import google
+from app.core.config import settings
 
 routers=APIRouter()
 
@@ -81,3 +82,17 @@ async def ChangePassowrd(
             new_password=newPassword
         )
         return await UserCrud(session).change_password(currentUser.id,data)
+
+
+@routers.get("/google")
+async def google_login():
+    return await google.authorize_redirect(request=None,redirect_uri=settings.GOOGLE_REDIRECT_URI)
+
+@routers.get("/google/callback")
+async def callback(request: Request):
+    try:
+        token = await google.authorize_access_token(request)
+        user_info = await google.parse_id_token(request, token)
+        return {"user": user_info}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

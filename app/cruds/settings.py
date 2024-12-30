@@ -18,7 +18,7 @@ class UserSettingsCrud:
             return setts.scalars()
 
     async def read_one(self,id:UUID):
-        query = sql.select(Settings).filter(Settings.id==id)
+        query = sql.select(SettingsModel).filter(SettingsModel.id==id)
         async with self.db_session as session:
             try:
                 sett=await session.execute(query)
@@ -29,7 +29,7 @@ class UserSettingsCrud:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def read_by_user_id(self,user_id:UUID):
-        query = sql.select(Settings).filter(Settings.user_id==user_id)
+        query = sql.select(SettingsModel).filter(SettingsModel.user_id==user_id)
         async with self.db_session as session:
             try:
                 sett=await session.execute(query)
@@ -40,7 +40,7 @@ class UserSettingsCrud:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def add(self,set_data:SettingAddSchema):
-        sett = Settings(**set_data.dict())
+        sett = SettingsModel(**set_data.dict())
         async with self.db_session as session:
             try:
                 session.add(sett)
@@ -50,7 +50,7 @@ class UserSettingsCrud:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def update(self,id:UUID,sett_data:SettingEditSchema):
-        query = sql.select(Settings).filter(Settings.id == id)
+        query = sql.select(SettingsModel).filter(SettingsModel.id == id)
         try:
             async with self.db_session as session:
                 result = await session.execute(query)
@@ -59,7 +59,7 @@ class UserSettingsCrud:
                     raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)
 
                 for key,value in sett_data.dict(exclude_unset=True).items():
-                    setattr(Settings,key,value)
+                    setattr(SettingsModel,key,value)
                 await session.commit()
                 return sett
         except Exception as e:
@@ -67,7 +67,7 @@ class UserSettingsCrud:
             raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,id:UUID):
-        query = sql.select(Settings).filter(Settings.id == id)
+        query = sql.select(SettingsModel).filter(SettingsModel.id == id)
         async with self.db_session as session:
             sett = session.execute(query)
             if sett:

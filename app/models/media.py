@@ -10,4 +10,4 @@ class MediaModel(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, unique=True, index=True)
     media_file = Column(String, nullable=False)
     post_id = Column(UUID(as_uuid=True), ForeignKey("posts.id"), nullable=False)
-    post = relationship("PostModel", back_populates="medias")
+    post = relationship("PostModel",primaryjoin="MediaModel.post_id==PostModel.id",back_populates="medias")

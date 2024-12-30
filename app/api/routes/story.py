@@ -26,6 +26,14 @@ async def detail_story(session:sessionDep,currentUser:userDep,id:UUID):
 async def detail_story_id(session:sessionDep,currentUser:userDep,story_id:str):
     if currentUser:
         return await StoryCrud(session).read_by_story_id(story_id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
+
+@routers.get("/user/",response_model=List[StoryResponse],description="get user stories")
+async def detail_user_stories(session:sessionDep,currentUser:userDep):
+    if currentUser:
+        return await StoryCrud(session).read_by_user_id(currentUser.id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.post("/",response_model=StoryOnlyResponse)
 async def create_story(
@@ -76,4 +84,17 @@ async def delete_story(session:sessionDep,currentUser:userDep,id:UUID):
     story=await StoryCrud(session).read_one(id)
     if currentUser.is_superuser or currentUser.id==story.user_id:
         return await StoryCrud(session).delete(id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
+@routers.post("/like/")
+async def add_like_story(session:sessionDep,currentUser:userDep,id:UUID):
+    if currentUser:
+        return await StoryCrud(session).like_story(id,currentUser.id)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
+
+
+@routers.post("/unlike/")
+async def remove_like_story(session:sessionDep,currentUser:userDep,id:UUID):
+    if currentUser:
+        return await StoryCrud(session).unlike_story(id,currentUser.id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")

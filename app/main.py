@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from app.api.main import app_router
 # from app.core.db import init_db
 from app.core import settings
+from app.cruds.user import UserCrud
+from sqlalchemy.ext.asyncio.session import AsyncSession
 # from fastapi.staticfiles import StaticFiles
 # from app.core.config import create_folder
 
@@ -13,6 +15,9 @@ app = FastAPI(
 )
 
 
+# @app.on_event("startup")
+# async def init_app():
+#     return await UserCrud(AsyncSession).create_admin()
 # @app.on_event("startup")
 # async def initial_data():
 #     return await init_db()

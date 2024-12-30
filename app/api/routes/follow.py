@@ -7,6 +7,7 @@ from uuid import UUID
 
 routers = APIRouter()
 
+
 @routers.get("/")
 async def list_follow(db:sessionDep,currentUser:userDep,limit:int=10,offset:int=0):
     if currentUser.is_superuser:

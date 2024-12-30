@@ -1,8 +1,8 @@
-"""add saveds
+"""initial project
 
-Revision ID: d31eb7b20f8b
+Revision ID: bde513a4e90a
 Revises: 
-Create Date: 2024-12-20 23:00:34.105500
+Create Date: 2024-12-30 15:57:03.043855
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'd31eb7b20f8b'
+revision: str = 'bde513a4e90a'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -60,9 +60,37 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_follows_id'), 'follows', ['id'], unique=True)
+    op.create_table('messages',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('content', sa.String(), nullable=False),
+    sa.Column('state', sa.String(), nullable=True),
+    sa.Column('parent_id', sa.UUID(), nullable=True),
+    sa.Column('send_user_id', sa.UUID(), nullable=True),
+    sa.Column('recieve_user_id', sa.UUID(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['parent_id'], ['messages.id'], ),
+    sa.ForeignKeyConstraint(['recieve_user_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['send_user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('notifications',
+    sa.Column('action_type', sa.String(), nullable=True),
+    sa.Column('content_type', sa.String(), nullable=True),
+    sa.Column('state', sa.String(), nullable=True),
+    sa.Column('user_id', sa.UUID(), nullable=True),
+    sa.Column('action_user_id', sa.UUID(), nullable=True),
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['action_user_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_notifications_id'), 'notifications', ['id'], unique=True)
     op.create_table('posts',
     sa.Column('post_id', sa.String(), nullable=True),
-    sa.Column('content', sa.String(), nullable=False),
+    sa.Column('content', sa.String(), nullable=True),
     sa.Column('views', sa.Integer(), nullable=True),
     sa.Column('post_type', sa.String(), nullable=True),
     sa.Column('visible', sa.Boolean(), nullable=True),
@@ -180,6 +208,9 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_posts_post_id'), table_name='posts')
     op.drop_index(op.f('ix_posts_id'), table_name='posts')
     op.drop_table('posts')
+    op.drop_index(op.f('ix_notifications_id'), table_name='notifications')
+    op.drop_table('notifications')
+    op.drop_table('messages')
     op.drop_index(op.f('ix_follows_id'), table_name='follows')
     op.drop_table('follows')
     op.drop_index(op.f('ix_validations_id'), table_name='validations')

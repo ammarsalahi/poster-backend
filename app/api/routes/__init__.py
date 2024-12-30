@@ -6,3 +6,5 @@ from .settings import  routers as settingRouters
 from .media import routers as mediaRouters
 from .auth import routers as authRouters
 from .follow import routers as followRouters
+from .notification import routers as notifyRoouters
+from .message import routers as messageRouters

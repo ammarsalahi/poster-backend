@@ -49,6 +49,16 @@ class StoryCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    async def read_by_user_id(self,user_id:UUID):
+        query = sql.select(StoryModel).options(
+            selectinload(StoryModel.liked_by)
+        ).filter(StoryModel.user_id==user_id)
+        async with self.db_session as session:
+            try:
+                story=await session.execute(query)
+                return story.unique().scalars()
+            except Exception as e:
+                raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     async def add(self,story_data:StoryAddSchema):
         story = StoryModel(**story_data.dict())
         async with self.db_session as session:
@@ -74,7 +84,7 @@ class StoryCrud:
                 await session.commit()
                 return story
         except Exception as e:
-            await session.rollback()
+            # await session.rollback()
             raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,id:UUID):
@@ -86,3 +96,83 @@ class StoryCrud:
 
             await session.delete(story)
             await session.commit()
+
+    async def like_story(self,story_id:UUID,user_id:UUID):
+        story_query = sql.select(StoryModel).filter(StoryModel.id==story_id)
+        user_query=sql.select(UserModel).filter(UserModel.id==user_id)
+        async with self.db_session as session:
+            try:
+                story_result= await session.execute(story_query)
+                user_result= await session.execute(user_query)
+
+                story = story_result.scalar_one_or_none()
+                user = user_result.scalar_one_or_none()
+                if not story:
+                    raise HTTPException(detail="Stroy Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                story.liked_by.append(user)
+                await session.commit()
+                return {"message":"story liked successfully!"}
+            except Exception as e:
+                raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def unlike_story(self,story_id:UUID,user_id:UUID):
+        story_query = sql.select(StoryModel).filter(StoryModel.id==story_id)
+        user_query=sql.select(UserModel).filter(UserModel.id==user_id)
+        async with self.db_session as session:
+            try:
+                story_result= await session.execute(story_query)
+                user_result= await session.execute(user_query)
+
+                story = story_result.scalar_one_or_none()
+                user = user_result.scalar_one_or_none()
+                if not story:
+                    raise HTTPException(detail="Stroy Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                story.liked_by.remove(user)
+                await session.commit()
+                return {"message":"story liked successfully!"}
+            except Exception as e:
+                raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def save_story(self,story_id:UUID,user_id:UUID):
+        story_query = sql.select(StoryModel).filter(StoryModel.id==story_id)
+        user_query=sql.select(UserModel).filter(UserModel.id==user_id)
+        async with self.db_session as session:
+            try:
+                story_result= await session.execute(story_query)
+                user_result= await session.execute(user_query)
+
+                story = story_result.scalar_one_or_none()
+                user = user_result.scalar_one_or_none()
+                if not story:
+                    raise HTTPException(detail="Stroy Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                story.saved_by.append(user)
+                await session.commit()
+                return {"message":"story saved successfully!"}
+            except Exception as e:
+                raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def unsave_story(self,story_id:UUID,user_id:UUID):
+        story_query = sql.select(StoryModel).filter(StoryModel.id==story_id)
+        user_query=sql.select(UserModel).filter(UserModel.id==user_id)
+        async with self.db_session as session:
+            try:
+                story_result= await session.execute(story_query)
+                user_result= await session.execute(user_query)
+
+                story = story_result.scalar_one_or_none()
+                user = user_result.scalar_one_or_none()
+                if not story:
+                    raise HTTPException(detail="Stroy Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                story.saved_by.remove(user)
+                await session.commit()
+                return {"message":"story unsaved successfully!"}
+            except Exception as e:
+                raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)                

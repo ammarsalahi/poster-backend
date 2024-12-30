@@ -44,8 +44,6 @@ class UserResponse(BaseModel):
     # liked_stories:List["StoryOnlyResponse"]
 
 
-
-
 class SettingsResponse(BaseModel):
     id:UUID
     user_id:UUID
@@ -129,3 +127,18 @@ class ValidationResponse(BaseModel):
     is_verified:bool
     created_at: datetime
     updated_at: datetime
+
+class NotificationResponse(BaseModel):
+    action_type:str
+    content_type:str
+    user_id:UUID
+    action_user_id:UUID
+    state:str
+
+class MessageResponse(BaseModel):
+    content:str
+    send_user_id:UUID
+    recieve_user_id:UUID
+    parent_id:UUID
+    state:str
+    replies:List["MessageResponse"]

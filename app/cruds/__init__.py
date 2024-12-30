@@ -6,3 +6,5 @@ from .settings import UserSettingsCrud
 from .story import StoryCrud
 from .validation import ValidationCrud
 from .follow import FollowCrud
+from .notification import NotificationCrud
+from .message import MessageCrud

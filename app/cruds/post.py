@@ -60,6 +60,18 @@ class PostCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    async def read_by_user_id(self,user_id:UUID):
+        query=sql.select(PostModel).options(
+            selectinload(PostModel.medias),
+            selectinload(PostModel.liked_by),
+            selectinload(PostModel.comments)
+        ).filter(PostModel.user_id==user_id)
+        async with self.db_session as session:
+            try:
+                post=await session.execute(query)
+                return post.unique().scalars()
+            except Exception as e:
+                raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     async def add(self,post_data:PostAddSchema,medias:List[str]):
 
         post=PostModel(**post_data.dict())
@@ -99,7 +111,7 @@ class PostCrud:
                 return post
 
         except Exception as e:
-            await session.rollback()
+            # await session.rollback()
             raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,id:UUID):
@@ -110,3 +122,84 @@ class PostCrud:
                 raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             await session.delete(post)
             await session.commit()
+
+    async def like_post(self,post_id:UUID,user_id:UUID):
+        post_query = sql.select(PostModel).filter(PostModel.id==post_id)
+        user_query=sql.select(UserModel).filter(UserModel.id==user_id)
+        async with self.db_session as session:
+            try:
+                post_result= await session.execute(post_query)
+                user_result= await session.execute(user_query)
+
+                post = post_result.scalar_one_or_none()
+                user = user_result.scalar_one_or_none()
+                if not post:
+                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                post.liked_by.append(user)
+                await session.commit()
+                return {"message":"post liked successfully!"}
+            except Exception as e:
+                raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+    async def unlike_post(self,post_id:UUID,user_id:UUID):
+        post_query = sql.select(PostModel).filter(PostModel.id==post_id)
+        user_query=sql.select(UserModel).filter(UserModel.id==user_id)
+        async with self.db_session as session:
+            try:
+                post_result= await session.execute(post_query)
+                user_result= await session.execute(user_query)
+
+                post = post_result.scalar_one_or_none()
+                user = user_result.scalar_one_or_none()
+                if not post:
+                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                post.liked_by.remove(user)
+                await session.commit()
+                return {"message":"post unliked successfully!"}
+            except Exception as e:
+                raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def save_post(self,post_id:UUID,user_id:UUID):
+        post_query = sql.select(PostModel).filter(PostModel.id==post_id)
+        user_query=sql.select(UserModel).filter(UserModel.id==user_id)
+        async with self.db_session as session:
+            try:
+                post_result= await session.execute(post_query)
+                user_result= await session.execute(user_query)
+
+                post = post_result.scalar_one_or_none()
+                user = user_result.scalar_one_or_none()
+                if not post:
+                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                post.saved_by.append(user)
+                await session.commit()
+                return {"message":"post saved successfully!"}
+            except Exception as e:
+                raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def unsave_post(self,post_id:UUID,user_id:UUID):
+        post_query = sql.select(PostModel).filter(PostModel.id==post_id)
+        user_query=sql.select(UserModel).filter(UserModel.id==user_id)
+        async with self.db_session as session:
+            try:
+                post_result= await session.execute(post_query)
+                user_result= await session.execute(user_query)
+
+                post = post_result.scalar_one_or_none()
+                user = user_result.scalar_one_or_none()
+                if not post:
+                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                post.saved_by.remove(user)
+                await session.commit()
+                return {"message":"post unsaved successfully!"}
+            except Exception as e:
+                raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)

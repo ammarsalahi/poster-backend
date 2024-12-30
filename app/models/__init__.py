@@ -6,3 +6,5 @@ from .media import MediaModel
 from .follow import FollowModel
 from .validation import ValidationModel
 from .settings import SettingsModel
+from .notification import NotificationModel
+from .message import MessageModel

@@ -9,7 +9,7 @@ from pydantic import EmailStr
 from app.schemas.response import *
 from app.schemas.user import *
 import sqlalchemy as sql
-
+from app.core.config import settings
 
 
 class UserCrud:
@@ -126,9 +126,10 @@ class UserCrud:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def add(self,user_data:UserAddSchema|UserAddAdminSchema):
+        if "admin" in user_data.username or "admin" in user_data.fullname:
+            raise HTTPException(detail="cant user admin word!",status_code=status.HTTP_400_BAD_REQUEST)
         user=UserModel(**user_data.dict())
         user.password = hashed_password(user_data.password)
-        user.user_posts=[]
         async with self.db_session as session:
             try:
                 session.add(user)
@@ -195,5 +196,32 @@ class UserCrud:
                     raise HTTPException(detail="User Not Found",status_code=status.HTTP_404_NOT_FOUND)
                     await session.delete(user)
                     await session.commit()
+            except Exception as e:
+                raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    async def create_admin(self):
+        if settings.IS_OLD_ADMINS_DELETE:
+            query = sql.select(UserModel).filter(UserModel.is_superuser==True)
+            async with self.db_session as session:
+                try:
+                    users= await session.execute(query)
+                    if users:
+                        await session.delete(users)
+                        await session.commit()
+                except Exception as e:
+                    raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        user=UserModel(
+            username=settings.ADMIN_USERNAME,
+            email=settings.ADMIN_USERNAME,
+            password=hashed_password(f"{settings.ADMIN_PASSWORD}"),
+            profile_type="private",
+            is_verified=True,
+            is_active=True,
+            is_superuser=True
+        )
+        async with self.db_session as session:
+            try:
+                session.add(user)
+                await session.commit()
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -22,6 +22,6 @@ class StoryModel(Base):
     story_type = Column(String,default="public")
     #relations
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    user = relationship("UserModel", back_populates="user_stories")
+    user = relationship("UserModel", primaryjoin="StoryModel.user_id==UserModel.id",back_populates="user_stories")
     liked_by = relationship("UserModel",secondary=liked_stories_table,back_populates="liked_stories")
     saved_by = relationship("UserModel",secondary=saved_stories_table,back_populates="saved_stories")

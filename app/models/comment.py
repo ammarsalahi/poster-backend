@@ -3,10 +3,8 @@ from sqlalchemy import (
     UUID,
     Column,
     String,
-    Integer,
     Boolean,
     ForeignKey,
-    DateTime
 )
 from sqlalchemy.orm import relationship
 from .table_relations import *
@@ -21,7 +19,7 @@ class CommentModel(Base):
     visible = Column(Boolean, default=True)
 
     # Relationships with UserModel and PostModel
-    user = relationship("UserModel", back_populates="user_comments")
-    post = relationship("PostModel", back_populates="comments")
+    user = relationship("UserModel", primaryjoin="CommentModel.user_id==UserModel.id",back_populates="user_comments")
+    post = relationship("PostModel", primaryjoin="CommentModel.post_id==PostModel.id",back_populates="comments")
 
     liked_by = relationship("UserModel",secondary=liked_comments_table,back_populates="liked_comments")
