@@ -14,9 +14,9 @@ routers=APIRouter()
 
 
 @routers.get("/",response_model=List[PostResponse])
-async def list_posts(session:sessionDep,limit:int=10,offset:int=0):
-    # if currentUser:
-    return await PostCrud(session).read_all(limit,offset)
+async def list_posts(session:sessionDep,currentUser:userDep,limit:int=10,offset:int=0):
+    if currentUser:
+        return await PostCrud(session).read_all(limit,offset)
 
 
 @routers.get("/info/{id}",response_model=PostResponse)

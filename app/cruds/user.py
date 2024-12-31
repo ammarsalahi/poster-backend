@@ -33,6 +33,8 @@ class UserCrud:
                 try:
                     users = await session.execute(query)
                     return users.unique().scalars()
+                except sql.exc.NoResultFound:
+                    raise HTTPException(detail="Users Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
                 except Exception as e:
                     raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -45,8 +47,14 @@ class UserCrud:
             )
         ).limit(limit)
         async with self.db_session as session:
-            users=await session.execute(query)
-            return users.unique().scalars()
+            try:
+
+                users=await session.execute(query)
+                return users.unique().scalars()
+            except sql.exc.NoResultFound:
+                    raise HTTPException(detail="Users Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
+            except Exception as e:
+                    raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)   
 
     async def read_one(self,user_id:UUID):
         query=sql.select(UserModel).options(
@@ -62,9 +70,9 @@ class UserCrud:
         async with self.db_session as session:
             try:
                 user= await session.execute(query)
-                if not user:
-                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return user.unique().scalar_one()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -82,9 +90,11 @@ class UserCrud:
         async with self.db_session as session:
             try:
                 user= await session.execute(query)
-                if not user:
-                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return user.unique().scalar_one()
+
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

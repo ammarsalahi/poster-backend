@@ -7,4 +7,4 @@ from app.core.token import get_current_user
 
 
 sessionDep = Annotated[AsyncSession,Depends(get_db)]
-userDep = Annotated[UserResponse,Depends(get_current_user)]
+userDep = Annotated[UserOnlyResponse,Depends(get_current_user)]

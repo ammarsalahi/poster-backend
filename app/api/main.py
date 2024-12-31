@@ -20,6 +20,7 @@ app_router.include_router(mediaRouters,prefix="/medias",tags=['medias'])
 app_router.include_router(followRouters,prefix="/follows",tags=['follows'])
 app_router.include_router(notifyRoouters,prefix="/notifies",tags=['notifies'])
 app_router.include_router(messageRouters,prefix="/messages",tags=['messages'])
+app_router.include_router(validationRouters,prefix="/validations",tags=['validations'])
 
 
 # define graphQL router

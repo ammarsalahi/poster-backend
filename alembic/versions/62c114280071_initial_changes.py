@@ -1,8 +1,8 @@
-"""initial project
+"""initial changes
 
-Revision ID: bde513a4e90a
+Revision ID: 62c114280071
 Revises: 
-Create Date: 2024-12-30 15:57:03.043855
+Create Date: 2024-12-31 15:59:31.432722
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'bde513a4e90a'
+revision: str = '62c114280071'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -41,12 +41,13 @@ def upgrade() -> None:
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
     op.create_table('validations',
     sa.Column('email', sa.String(), nullable=False),
-    sa.Column('code', sa.String(), nullable=False),
+    sa.Column('code', sa.String(), nullable=True),
     sa.Column('is_verified', sa.Boolean(), nullable=True),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('code')
     )
     op.create_index(op.f('ix_validations_id'), 'validations', ['id'], unique=True)
     op.create_table('follows',
@@ -61,12 +62,12 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_follows_id'), 'follows', ['id'], unique=True)
     op.create_table('messages',
-    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('content', sa.String(), nullable=False),
     sa.Column('state', sa.String(), nullable=True),
     sa.Column('parent_id', sa.UUID(), nullable=True),
     sa.Column('send_user_id', sa.UUID(), nullable=True),
     sa.Column('recieve_user_id', sa.UUID(), nullable=True),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['parent_id'], ['messages.id'], ),
@@ -74,6 +75,7 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['send_user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_messages_id'), 'messages', ['id'], unique=True)
     op.create_table('notifications',
     sa.Column('action_type', sa.String(), nullable=True),
     sa.Column('content_type', sa.String(), nullable=True),
@@ -120,7 +122,7 @@ def upgrade() -> None:
     sa.Column('media_file', sa.String(), nullable=False),
     sa.Column('views', sa.Integer(), nullable=True),
     sa.Column('story_type', sa.String(), nullable=True),
-    sa.Column('user_id', sa.UUID(), nullable=False),
+    sa.Column('user_id', sa.UUID(), nullable=True),
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
@@ -210,6 +212,7 @@ def downgrade() -> None:
     op.drop_table('posts')
     op.drop_index(op.f('ix_notifications_id'), table_name='notifications')
     op.drop_table('notifications')
+    op.drop_index(op.f('ix_messages_id'), table_name='messages')
     op.drop_table('messages')
     op.drop_index(op.f('ix_follows_id'), table_name='follows')
     op.drop_table('follows')

@@ -11,7 +11,7 @@ from app.utils.media import save_media
 routers=APIRouter()
 
 
-@routers.get("/",response_model=List[UserResponse])
+@routers.get("/",response_model=List[UserOnlyResponse])
 async def list_users(session:sessionDep,currentUser:userDep,limit:int=10,offset:int=0):
     if currentUser.is_superuser:
         return await UserCrud(session).read_all(limit=limit,offset=offset,is_superuser=currentUser.is_superuser)
@@ -25,11 +25,11 @@ async def list_users(session:sessionDep,currentUser:userDep,limit:int=10,offset:
 async def detail_user(session:sessionDep,currentUser:userDep):
     return currentUser
 
-@routers.get("/details/{username}",response_model=UserResponse)
+@routers.get("/{username}",response_model=UserResponse)
 async def detail_user_username(session:sessionDep,username:str):
     return  await UserCrud(session).read_by_username(username)
 
-@routers.get("/search",response_model=List[UserOnlyResponse])
+@routers.get("/search/",response_model=List[UserOnlyResponse])
 async def search_user(session:sessionDep,currentUser:userDep,query:str,limit:int=10):
     if currentUser:
         return  await UserCrud(session).filter(limit=limit,q=query)
