@@ -18,7 +18,7 @@ class StoryCrud:
         ).offset(offset).limit(limit)
         async with self.db_session as session:
             stories = await session.execute(query)
-            return stories.unique().scalars()
+            return stories.unique().scalars().all()
 
     async def read_one(self,id:UUID):
         query = sql.select(StoryModel).options(
@@ -27,9 +27,9 @@ class StoryCrud:
         async with self.db_session as session:
             try:
                 story=await session.execute(query)
-                if not story:
-                    raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return story.unique().scalar_one()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -43,9 +43,9 @@ class StoryCrud:
         async with self.db_session as session:
             try:
                 story=await session.execute(query)
-                if not story:
-                    raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return story.unique().scalar_one()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -57,10 +57,12 @@ class StoryCrud:
             try:
                 story=await session.execute(query)
                 return story.unique().scalars()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     async def add(self,story_data:StoryAddSchema):
-        story = StoryModel(**story_data.dict())
+        story = StoryModel(**story_data.model_dump())
         async with self.db_session as session:
             try:
                 session.add(story)
@@ -73,29 +75,30 @@ class StoryCrud:
 
     async def update(self,story_id:str,story_data:StoryEditSchema):
         query = sql.select(StoryModel).filter(StoryModel.story_id == story_id)
-        try:
-            async with self.db_session as session:
+        async with self.db_session as session:
+            try:
                 result = await session.execute(query)
                 story = result.scalar_one_or_none()
-                if not story:
-                    raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                for key,value in story_data.dict(exclude_unset=True).items():
+                for key,value in story_data.model_dump(exclude_unset=True).items():
                     setattr(story,key,value)
                 await session.commit()
                 return story
-        except Exception as e:
-            # await session.rollback()
-            raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
+            except Exception as e:
+                await session.rollback()
+                raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,id:UUID):
         query = sql.select(StoryModel).filter(StoryModel.id == id)
         async with self.db_session as session:
-            story = session.execute(query)
-            if not story:
+            try:
+                story = session.execute(query)
+                await session.delete(story)
+                await session.commit()
+            except sql.exc.NoResultFound:
                 raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-
-            await session.delete(story)
-            await session.commit()
+    
 
     async def like_story(self,story_id:UUID,user_id:UUID):
         story_query = sql.select(StoryModel).filter(StoryModel.id==story_id)

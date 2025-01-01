@@ -22,10 +22,10 @@ class ValidationCrud:
         query = sql.select(ValidationModel).filter(ValidationModel.id==valid_id)
         async with self.db_session as session:
             try:
-                valid=await session.execute(query)
-                if not valid:
-                    raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                valid=await session.execute(query)                    
                 return valid.scalar_one()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -34,9 +34,9 @@ class ValidationCrud:
         async with self.db_session as session:
             try:
                 valid=await session.execute(query)
-                if not valid:
-                    raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return valid.scalar_one()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -50,8 +50,6 @@ class ValidationCrud:
             try:
                 result = await session.execute(query)
                 valid = result.scalar_one_or_none()
-                if not valid:
-                    raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 update_query = (sql.update(ValidationModel).where(
                     ValidationModel.email == str(valid_data.email),
                     ValidationModel.code == valid_data.code
@@ -60,11 +58,13 @@ class ValidationCrud:
                 await session.execute(update_query)
                 await session.commit()
                 return valid
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def add(self,valid_data:ValidationAddSchema):
-        valid = ValidationModel(**valid_data.dict())
+        valid = ValidationModel(**valid_data.model_dump())
         async with self.db_session as session:
             try:
                 session.add(valid)
@@ -76,26 +76,28 @@ class ValidationCrud:
 
     async def update(self,id:UUID,validation_data:ValidationEditSchema):
         query = sql.select(ValidationModel).filter(ValidationModel.id == id)
-        try:
-            async with self.db_session as session:
+        async with self.db_session as session:
+            try:
                 result = await session.execute(query)
                 validation = result.scalar_one_or_none()
-                if validation:
-                    for key,value in validation_data.dict(exclude_unset=True).items():
-                        setattr(validation,key,value)
-                    await session.commit()
-                    return validation
-                else:
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            await session.rollback()
-            raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
+                for key,value in validation_data.model_dump(exclude_unset=True).items():
+                    setattr(validation,key,value)
+                await session.commit()
+                return validation
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
+            except Exception as e:
+                await session.rollback()
+                raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,id:UUID):
         query = sql.select(ValidationModel).filter(ValidationModel.id == id)
         async with self.db_session as session:
-            valid = session.execute(query)
-            if not valid:
-                raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-            await session.delete(valid)
-            await session.commit()
+            try:
+                valid = session.execute(query)
+                await session.delete(valid)
+                await session.commit()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
+
+

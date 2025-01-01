@@ -33,6 +33,7 @@ class UserCrud:
                 try:
                     users = await session.execute(query)
                     return users.unique().scalars()
+
                 except sql.exc.NoResultFound:
                     raise HTTPException(detail="Users Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
                 except Exception as e:
@@ -48,7 +49,6 @@ class UserCrud:
         ).limit(limit)
         async with self.db_session as session:
             try:
-
                 users=await session.execute(query)
                 return users.unique().scalars()
             except sql.exc.NoResultFound:
@@ -112,9 +112,9 @@ class UserCrud:
         async with self.db_session as session:
             try:
                 user= await session.execute(query)
-                if not user:
-                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return user.scalar_one()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -127,18 +127,18 @@ class UserCrud:
             try:
                 user= await session.execute(query)
                 user_data=user.scalar_one_or_none()
-                if not user_data:
-                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 if not verify_password(data.password,str(user_data.password)):
                     raise HTTPException( detail="Invalid Credentials",status_code=status.HTTP_401_UNAUTHORIZED)
                 return user_data
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def add(self,user_data:UserAddSchema|UserAddAdminSchema):
         if "admin" in user_data.username or "admin" in user_data.fullname:
             raise HTTPException(detail="cant user admin word!",status_code=status.HTTP_400_BAD_REQUEST)
-        user=UserModel(**user_data.dict())
+        user=UserModel(**user_data.model_dump())
         user.password = hashed_password(user_data.password)
         async with self.db_session as session:
             try:
@@ -171,7 +171,7 @@ class UserCrud:
                 user=result.scalar_one_or_none()
                 if not user:
                     raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                for key,value in user_data.dict(exclude_unset=True).items():
+                for key,value in user_data.model_dump(exclude_unset=True).items():
                     if value is not None:
                         setattr(user,key,value)
                 await session.commit()
@@ -202,10 +202,10 @@ class UserCrud:
         async with self.db_session as session:
             try:
                 user=await session.execute(query)
-                if not user:
-                    raise HTTPException(detail="User Not Found",status_code=status.HTTP_404_NOT_FOUND)
-                    await session.delete(user)
-                    await session.commit()
+                await session.delete(user)
+                await session.commit()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="User Not Found",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

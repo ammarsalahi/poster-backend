@@ -23,9 +23,9 @@ class MessageCrud:
         async with self.db_session as session:
             try:
                 message=await session.execute(query)
-                if not message:
-                    raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return message.scalar_one()
+            except sql.exc.NoResultFound:
+                    raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -40,11 +40,13 @@ class MessageCrud:
             try:
                 message=await session.execute(query)
                 return message.scalars()
+            except sql.exc.NoResultFound:
+                    raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def add(self,message_data:MessageAddSchema):
-        message = MessageModel(**message_data.dict())
+        message = MessageModel(**message_data.model_dump())
         async with self.db_session as session:
             try:
                 session.add(message)
@@ -55,26 +57,26 @@ class MessageCrud:
 
     async def update(self,id:UUID,message_data:MeessageEditSchema):
         query = sql.select(MessageModel).filter(MessageModel.id == id)
-        try:
-            async with self.db_session as session:
+        async with self.db_session as session:
+            try:
                 result = await session.execute(query)
                 message=result.scalar_one_or_none()
-                if not message:
-                    raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                for key,value in message_data.dict(exclude_unset=True).items():
+                for key,value in message_data.model_dump(exclude_unset=True).items():
                     setattr(message,key,value)
                     await session.commit()
-                return message
-        except Exception as e:
-            await session.rollback()
-            raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
+                    return message
+            except sql.exc.NoResultFound:
+                    raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
+            except Exception as e:
+                await session.rollback()
+                raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,id:UUID):
         query = sql.select(MessageModel).filter(MessageModel.id == id)
         async with self.db_session as session:
-            message = session.execute(query)
-            if message:
+            try:
+                message = session.execute(query)
                 await session.delete(message)
                 await session.commit()
-            else:
+            except sql.exc.NoResultFound:
                 raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)

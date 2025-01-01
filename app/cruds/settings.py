@@ -22,9 +22,9 @@ class UserSettingsCrud:
         async with self.db_session as session:
             try:
                 sett=await session.execute(query)
-                if not sett:
-                    raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return sett.scalar_one()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -33,14 +33,14 @@ class UserSettingsCrud:
         async with self.db_session as session:
             try:
                 sett=await session.execute(query)
-                if not sett:
-                    raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return sett.scalar_one()
+            except  sql.exc.NoResultFound:
+                raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def add(self,set_data:SettingAddSchema):
-        sett = SettingsModel(**set_data.dict())
+        sett = SettingsModel(**set_data.model_dump())
         async with self.db_session as session:
             try:
                 session.add(sett)
@@ -51,27 +51,26 @@ class UserSettingsCrud:
 
     async def update(self,id:UUID,sett_data:SettingEditSchema):
         query = sql.select(SettingsModel).filter(SettingsModel.id == id)
-        try:
-            async with self.db_session as session:
+        async with self.db_session as session:
+            try:
                 result = await session.execute(query)
                 sett = result.scalar_one_or_none()
-                if not sett:
-                    raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-
-                for key,value in sett_data.dict(exclude_unset=True).items():
+                for key,value in sett_data.model_dump(exclude_unset=True).items():
                     setattr(SettingsModel,key,value)
                 await session.commit()
                 return sett
-        except Exception as e:
-            await session.rollback()
-            raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
+            except  sql.exc.NoResultFound:
+                raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
+            except Exception as e:
+                await session.rollback()
+                raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,id:UUID):
         query = sql.select(SettingsModel).filter(SettingsModel.id == id)
         async with self.db_session as session:
-            sett = session.execute(query)
-            if sett:
+            try:
+                sett = session.execute(query)
                 await session.delete(sett)
                 await session.commit()
-            else:
+            except sql.exc.NoResultFound:
                 raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)

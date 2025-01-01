@@ -23,14 +23,14 @@ class MediaCrud:
         async with self.db_session as session:
             try:
                 media=await session.execute(query)
-                if not media:
-                    raise HTTPException(detail="media Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return media.scalar_one()
+            except sql.exc.NoResultFound:
+                    raise HTTPException(detail="media Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def add(self,media_data:MediaAddSchema):
-        media = MediaModel(**media_data.dict())
+        media = MediaModel(**media_data.model_dump())
         async with self.db_session as session:
             try:
                 session.add(media)
@@ -45,12 +45,12 @@ class MediaCrud:
             async with self.db_session as session:
                 result = await session.execute(query)
                 media=result.scalar_one_or_none()
-                if not media:
-                    raise HTTPException(detail="media Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                for key,value in media_data.dict(exclude_unset=True).items():
+                for key,value in media_data.model_dump(exclude_unset=True).items():
                     setattr(media,key,value)
                     await session.commit()
                 return media
+        except sql.exc.NoResultFound:
+                    raise HTTPException(detail="media Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
         except Exception as e:
             await session.rollback()
             raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
@@ -58,9 +58,9 @@ class MediaCrud:
     async def delete(self,id:UUID):
         query = sql.select(MediaModel).filter(MediaModel.id == id)
         async with self.db_session as session:
-            media = session.execute(query)
-            if media:
+            try:
+                media = session.execute(query)
                 await session.delete(media)
                 await session.commit()
-            else:
+            except sql.exc.NoResultFound:
                 raise HTTPException(detail="media Not Found!",status_code=status.HTTP_404_NOT_FOUND)

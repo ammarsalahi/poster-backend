@@ -48,21 +48,21 @@ async def create_comment(
 async def update_comment(
     session:sessionDep,
     currentUser:userDep,
-    comment_id:UUID,
+    id:UUID,
     content:str=Form()
 ):
-    comment = await CommentCrud(session).read_one(comment_id)
+    comment = await CommentCrud(session).read_one(id)
     if currentUser.is_superuser or currentUser.id==comment.user_id:
         comment_data=CommentEditSchema(content=content)
-        return await CommentCrud(session).update(comment_id,comment_data)
+        return await CommentCrud(session).update(id,comment_data)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 
 @routers.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
-async def delete_comment(session:sessionDep,currentUser:userDep,comment_id:UUID):
-    comment = await CommentCrud(session).read_one(comment_id)
+async def delete_comment(session:sessionDep,currentUser:userDep,id:UUID):
+    comment = await CommentCrud(session).read_one(id)
     if currentUser.is_superuser or currentUser.id==comment.user_id:
-        return await CommentCrud(session).delete(comment_id)
+        return await CommentCrud(session).delete(id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.post("/like")

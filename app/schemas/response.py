@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List,Optional
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, EmailStr
 
@@ -79,8 +79,18 @@ class StoryResponse(BaseModel):
     user_id:UUID
     created_at:datetime
     updated_at:datetime
-    liked_by:List["UserResponse"]
+    liked_by:Optional[List["UserResponse"]]
 
+
+
+# class PostOnlyResponse(BaseModel):
+#     id:UUID
+#     post_id:str
+#     content:str
+#     views:int
+#     post_type:str
+#     visible:bool
+#     user_id:UUID
 
 class PostResponse(BaseModel):
     id:UUID

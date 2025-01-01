@@ -25,9 +25,9 @@ class FollowCrud:
         async with self.db_session as session:
             try:
                 follow=await session.execute(query)
-                if not follow:
-                    raise HTTPException(detail="Follow Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return follow.scalar_one()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Follow Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     async def add(self,data:FollowSchema):
@@ -35,7 +35,7 @@ class FollowCrud:
             FollowModel.follower_id==data.follower_id,
             FollowModel.following_id==data.following_id,
         )
-        follow = FollowModel(**data.dict())
+        follow = FollowModel(**data.model_dump())
         async with self.db_session as session:
             try:
                 if data.follower_id==data.following_id:
@@ -47,6 +47,7 @@ class FollowCrud:
                     session.add(follow)
                     await session.commit()
                     return {"message":"User Successfully Followed"}
+
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     async def remove(self,data:FollowSchema):
@@ -55,9 +56,11 @@ class FollowCrud:
             FollowModel.following_id==data.following_id,
         )
         async with self.db_session as session:
-            follow = await session.execute(query)
-            if not follow:
+            try:
+
+                follow = await session.execute(query)
+                await session.delete(follow)
+                await session.commit()
+                return {"message":"User Successfully Unfollowed"}
+            except sql.exc.NoResultFound:
                 raise HTTPException(detail="Follow Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-            await session.delete(follow)
-            await session.commit()
-            return {"message":"User Successfully Unfollowed"}

@@ -29,9 +29,9 @@ class CommentCrud:
         async with self.db_session as session:
             try:
                 comment=await session.execute(query)
-                if not comment:
-                    raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return comment.unique().scalar_one()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -43,11 +43,13 @@ class CommentCrud:
             try:
                 comment=await session.execute(query)
                 return comment.unique().scalars()
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Comments Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def add(self,comment_data:CommentAddSchema):
-        comment=CommentModel(**comment_data.dict())
+        comment=CommentModel(**comment_data.model_dump())
         async with self.db_session as session:
             try:
                 session.add(comment)
@@ -62,12 +64,12 @@ class CommentCrud:
             async with self.db_session as session:
                 result= await session.execute(query)
                 comment = result.scalar_one_or_none()
-                if not comment:
-                    raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                for key , value in comment_data.dict(exclude_unset=True).items():
+                for key , value in comment_data.model_dump(exclude_unset=True).items():
                     setattr(comment,key,value)
                     await session.commit()
                 return comment
+        except sql.exc.NoResultFound:
+                raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             # await session.rollback()
             raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
@@ -75,11 +77,11 @@ class CommentCrud:
     async def delete(self,comment_id:UUID):
         query=sql.select(CommentModel).filter(CommentModel.id==comment_id)
         async with self.db_session as session:
-            comment=await session.execute(query)
-            if comment:
+            try:
+                comment=await session.execute(query)
                 await session.delete(comment)
                 await session.commit()
-            else:
+            except sql.exc.NoResultFound:
                 raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
 
     async def like_comment(self,comment_id:UUID,user_id:UUID):
@@ -99,6 +101,9 @@ class CommentCrud:
                 comment.liked_by.append(user)
                 await session.commit()
                 return {"message":"comment unliked successfully!"}
+
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -120,5 +125,9 @@ class CommentCrud:
                 comment.liked_by.remove(user)
                 await session.commit()
                 return {"message":"comment unliked successfully!"}
+
+            except sql.exc.NoResultFound:
+                raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+
             except Exception as e:
                 raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)

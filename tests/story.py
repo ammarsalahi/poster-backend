@@ -2,7 +2,7 @@ import pytest
 from httpx import ASGITransport,AsyncClient
 from app.main import app
 from app.models import *
-from .depends import session,test_stories,BASE_URL
+from .depends import *
 
 
 @pytest.mark.asyncio
@@ -12,7 +12,6 @@ async def test_list_stories(test_stories,get_Header,override_get_db):
     async with AsyncClient(transport=transport,base_url=BASE_URL) as client:
         response = await client.get("/stories/?limit=10&offset=0",headers=get_Header)
         assert response.status_code ==200
-        data = response.json()
 
         #without query paramerters
         wo_response = await client.get("/stories/",headers=get_Header)
@@ -26,17 +25,17 @@ async def test_list_stories(test_stories,get_Header,override_get_db):
 
 
 @pytest.mark.asyncio
-async def test_info_stories(test_stories,get_Header,override_get_db):
+async def test_info_stories(test_stories,get_Header_admin,override_get_db):
     transport = ASGITransport(app=app)
 
     async with AsyncClient(transport=transport,base_url=BASE_URL) as client:
 
         id=test_stories[0].id
-        response = await client.get("/stories/info/{id}",headers=get_Header)
+        response = await client.get("/stories/info/{id}",headers=get_Header_admin)
         assert response.status_code ==200
 
         #invalid
-        invalid_response = await client.get("/stories/info/pppp",headers=get_Header)
+        invalid_response = await client.get("/stories/info/pppp",headers=get_Header_admin)
         assert invalid_response.status_code ==404
 
         #without auth 

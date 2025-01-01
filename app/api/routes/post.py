@@ -67,14 +67,14 @@ async def create_post(
 async def update_post(
         session:sessionDep,
         currentUser:userDep,
-        post_id:str,
+        id:UUID,
         content:Optional[str]=Form(None),
         post_type:Optional[str]=Form(None),
         views:Optional[int]=Form(None),
         visible:Optional[bool]=Form(None),
         upload_files:List[UploadFile]=File(...)
 ):
-    post = await PostCrud(session).read_by_post_id(post_id)
+    post = await PostCrud(session).read_one(id)
     if currentUser.is_superuser or currentUser.id==post.user_id:
         medias:List[str]=[]
         for upload in upload_files:
@@ -86,7 +86,7 @@ async def update_post(
             views=views,
             visible=visible
         )
-        up_post=await PostCrud(session).update(post_id,post,medias)
+        up_post=await PostCrud(session).update(id,post,medias)
         return post
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 

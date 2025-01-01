@@ -38,9 +38,9 @@ class PostCrud:
         async with self.db_session as session:
             try:
                 post=await session.execute(query)
-                if not post:
-                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return post.unique().scalar_one()
+            except sql.exc.NoResultFound:
+                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -54,9 +54,9 @@ class PostCrud:
         async with self.db_session as session:
             try:
                 post=await session.execute(query)
-                if not post:
-                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 return post.unique().scalar_one()
+            except sql.exc.NoResultFound:
+                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -70,11 +70,15 @@ class PostCrud:
             try:
                 post=await session.execute(query)
                 return post.unique().scalars()
+            except sql.exc.NoResultFound:
+                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                
     async def add(self,post_data:PostAddSchema,medias:List[str]):
 
-        post=PostModel(**post_data.dict())
+        post=PostModel(**post_data.model_dump())
         async with self.db_session as session:
             try:
                 session.add(post)
@@ -91,37 +95,39 @@ class PostCrud:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-    async def update(self,post_id:str,post_data:PostEditSchema,medias:List[str]):
-        query=sql.select(PostModel).filter(PostModel.post_id==post_id)
+    async def update(self,id:UUID,post_data:PostEditSchema,medias:List[str]):
+        query=sql.select(PostModel).filter(PostModel.id==id)
         try:
             async with self.db_session as session:
                 result=await session.execute(query)
                 post=result.scalar_one_or_none()
-                if not post:
-                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-                for key , value in post_data.dict(exclude_unset=True).items():
+                for key , value in post_data.model_dump(exclude_unset=True).items():
                     setattr(post,key,value)
                 for media_data in medias:
                     new_media = MediaModel(
                         media_file=media_data,
-                        post_id=post_id
+                        post_id=id
                     )
                     session.add(new_media)
                 await session.commit()
                 return post
-
+        except sql.exc.NoResultFound:
+            raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            # await session.rollback()
+            await session.rollback()
             raise HTTPException(status_code=status.HTTP_308_PERMANENT_REDIRECT,detail=f"Database error {str(e)}")
 
     async def delete(self,id:UUID):
         query=sql.select(PostModel).filter(PostModel.id==id)
         async with self.db_session as session:
-            post=await session.execute(query)
-            if not post:
+            try:
+                post=await session.execute(query)
+                await session.delete(post)
+                await session.commit()
+            except sql.exc.NoResultFound:
                 raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-            await session.delete(post)
-            await session.commit()
+            except Exception as e:
+                raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)    
 
     async def like_post(self,post_id:UUID,user_id:UUID):
         post_query = sql.select(PostModel).filter(PostModel.id==post_id)
