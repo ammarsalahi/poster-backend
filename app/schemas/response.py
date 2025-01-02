@@ -81,7 +81,9 @@ class StoryResponse(BaseModel):
     updated_at:datetime
     liked_by:Optional[List["UserResponse"]]
 
-
+    # model_config=ConfigDict(
+    #     from_attributes=True
+    # )
 
 # class PostOnlyResponse(BaseModel):
 #     id:UUID
@@ -105,9 +107,11 @@ class PostResponse(BaseModel):
     comments:List["CommentOnlyResponse"]
     # post_liked_users:List["UserResponse"]
     #
-    # model_config=ConfigDict(
-    #     from_attributes=True
-    # )
+
+    model_config=ConfigDict(
+        from_attributes=True
+    )
+ 
 
 
 class CommentOnlyResponse(BaseModel):
@@ -139,6 +143,7 @@ class ValidationResponse(BaseModel):
     updated_at: datetime
 
 class NotificationResponse(BaseModel):
+    id:UUID
     action_type:str
     content_type:str
     user_id:UUID

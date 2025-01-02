@@ -37,8 +37,7 @@ async def search_user(session:sessionDep,currentUser:userDep,query:str,limit:int
 @routers.post("/",response_model=UserOnlyResponse)
 async def create_user(session:sessionDep,currentUser:userDep,user_data:UserAddAdminSchema):
     if currentUser.is_superuser:
-        user=await UserCrud(session).add(user_data)
-        return user
+        return await UserCrud(session).add(user_data)
 
 @routers.patch("/{id}",response_model=UserOnlyResponse)
 async def update_user(

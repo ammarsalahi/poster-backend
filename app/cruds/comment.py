@@ -1,5 +1,5 @@
 
-from fastapi import HTTPException,status
+from fastapi import HTTPException,status,Response
 from uuid import UUID
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from app.schemas.comment import *
@@ -7,6 +7,7 @@ from app.models import *
 from app.schemas.response import *
 import sqlalchemy as sql
 from sqlalchemy.orm import selectinload
+
 
 
 class CommentCrud:
@@ -78,9 +79,13 @@ class CommentCrud:
         query=sql.select(CommentModel).filter(CommentModel.id==comment_id)
         async with self.db_session as session:
             try:
-                comment=await session.execute(query)
+                result=await session.execute(query)
+                comment = result.scalar_one_or_none()
+                if not comment:
+                    raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 await session.delete(comment)
                 await session.commit()
+                # return Response(status_code=status.HTTP_204_NO_CONTENT,content="comment delete successfully")
             except sql.exc.NoResultFound:
                 raise HTTPException(detail="Comment Not Found!",status_code=status.HTTP_404_NOT_FOUND)
 

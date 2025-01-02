@@ -81,4 +81,5 @@ async def test_delete_comment(monkeypatch,test_comments,get_Header_admin,overrid
     async with AsyncClient(transport=transport,base_url=BASE_URL) as client:
         id=test_comments[0].id 
         response = await client.delete(f"/comments/{id}",headers=get_Header_admin)
+        print(f"detailss: {response.text}")
         assert response.status_code == 204

@@ -11,35 +11,41 @@ routers = APIRouter()
 
 
 @routers.get("/",response_model=List[MessageResponse])
-async def list_notifies(session:sessionDep,currentUser:userDep,limit:int=10,offset:int=0):
+async def list_messages(session:sessionDep,currentUser:userDep,limit:int=10,offset:int=0):
     if currentUser.is_superuser:
         return await MessageCrud(session).read_all(limit,offset)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 
 @routers.get("/{id}",response_model=MessageResponse)
-async def detail_notify(session:sessionDep,currentUser:userDep,id:UUID):
+async def detail_message(session:sessionDep,currentUser:userDep,id:UUID):
     if currentUser:
         return await MessageCrud(session).read_one(id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
+
 @routers.get("/user",response_model=List[MessageResponse],description="get user messages")
-async def detail_user_notify(session:sessionDep,currentUser:userDep):
+async def detail_user_message(session:sessionDep,currentUser:userDep):
     if currentUser:
         return await MessageCrud(session).read_one(currentUser.id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.post("/",response_model=MessageResponse)
-async def create_notify(session:sessionDep,currentUser:userDep,data:MessageAddSchema):
+async def create_message(session:sessionDep,currentUser:userDep,data:MessageAddSchema):
     if currentUser:
-        return await MessageCrud(session).add(data)
+        crud = MessageCrud(session)
+        cr_message = await crud.add(data)
+        return await crud.read_one(cr_message.id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.patch("/{id}",response_model=MessageResponse)
-async def updae_notify(session:sessionDep,currentUser:userDep,id:UUID,data:MeessageEditSchema):
-    message= await MessageCrud(session).read_one(id)
+async def update_message(session:sessionDep,currentUser:userDep,id:UUID,data:MeessageEditSchema):
+    crud = MessageCrud(session)
+    message= crud.read_one(id)
     if currentUser.id == message.send_user_id or currentUser.is_superuser:
-        return await MessageCrud(session).update(id,data)
+        
+        up_message = await crud.update(id,data)
+        return await crud.read_one(id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)

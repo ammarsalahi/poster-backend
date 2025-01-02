@@ -85,10 +85,13 @@ async def test_posts(session):
 
 @pytest_asyncio.fixture
 async def test_stories(session):
+    user=UserModel(username="user134",email="me124@mail.com",password="1234")
+    session.add(user)
+    await session.commit()
     stoires=[
-        StoryModel(media_file="1.png",story_type="public"),
-        StoryModel(media_file="2.png",story_type="private"),
-        StoryModel(media_file="3.png",story_type="public"),
+        StoryModel(media_file="1.png",story_type="public",user_id=user.id),
+        StoryModel(media_file="2.png",story_type="private",user_id=user.id),
+        StoryModel(media_file="3.png",story_type="public",user_id=user.id),
     ]
     session.add_all(stoires)  # Use add_all for multiple objects
     await session.commit()
@@ -168,7 +171,7 @@ async def test_validations(session):
 
 
 @pytest_asyncio.fixture
-async def test_notifications(session):
+async def test_messages(session):
     user=UserModel(username="user4",email="me414@mail.com",password="1234")
     user2=UserModel(username="user5",email="me77@mail.com",password="1234")
     messages=[
@@ -181,7 +184,7 @@ async def test_notifications(session):
 
 
 @pytest_asyncio.fixture
-async def test_messages(session):
+async def test_notifications(session):
     user=UserModel(username="user44",email="me88@mail.com",password="1234")
     user2=UserModel(username="user55",email="me99@mail.com",password="1234")
 

@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, File, Form, UploadFile,status,HTTPException
+from fastapi import APIRouter, File, Form, UploadFile,status,HTTPException,Response
 from app.schemas.media import MediaAddSchema
 from app.schemas.comment import *
 from app.schemas.post import *
@@ -8,7 +8,7 @@ from app.models import *
 from app.api.deps import *
 from app.cruds import PostCrud
 from app.schemas.response import *
-
+from pydantic import ValidationError
 
 routers=APIRouter()
 
@@ -62,20 +62,20 @@ async def create_post(
 
 
 
-
 @routers.patch("/{id}",response_model=PostResponse)
 async def update_post(
         session:sessionDep,
         currentUser:userDep,
-        id:UUID,
+        id:str,
         content:Optional[str]=Form(None),
         post_type:Optional[str]=Form(None),
         views:Optional[int]=Form(None),
         visible:Optional[bool]=Form(None),
-        upload_files:List[UploadFile]=File(...)
+        upload_files:List[UploadFile]=File(None)
 ):
-    post = await PostCrud(session).read_one(id)
-    if currentUser.is_superuser or currentUser.id==post.user_id:
+    crud = PostCrud(session)
+    re_post = await crud.read_by_post_id(id)
+    if currentUser.is_superuser or currentUser.id==re_post.user_id:
         medias:List[str]=[]
         for upload in upload_files:
             file_path = await save_media(upload)
@@ -86,16 +86,18 @@ async def update_post(
             views=views,
             visible=visible
         )
-        up_post=await PostCrud(session).update(id,post,medias)
-        return post
+        up_post=await crud.update(re_post.id,post,medias)
+        return await crud.read_by_post_id(up_post.post_id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 
-@routers.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(session:sessionDep,currentUser:userDep,id:UUID):
-    post = await PostCrud(session).read_one(id)
+@routers.delete("/{id}")
+async def delete_post(session:sessionDep,currentUser:userDep,id:str):
+    crud = PostCrud(session)
+    post = await crud.read_by_post_id(id)
     if currentUser.is_superuser or currentUser.id==post.user_id:
-        return await PostCrud(session).delete(id)
+        await crud.delete(post.id)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 

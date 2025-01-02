@@ -1,4 +1,4 @@
-from fastapi import HTTPException,status
+from fastapi import HTTPException,status,Response
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from app.schemas.message import *
 from app.models import *
@@ -6,6 +6,8 @@ from typing import List
 from uuid import UUID
 from app.schemas.response import *
 import sqlalchemy as sql
+from sqlalchemy.orm import joinedload, selectinload
+
 
 class MessageCrud:
 
@@ -13,17 +15,24 @@ class MessageCrud:
         self.db_session=db_session
 
     async def read_all(self,limit:int,offset:int):
-        query=sql.select(MessageModel).offset(offset).limit(limit)
+        query=sql.select(MessageModel).options(
+            selectinload(MessageModel.replies)
+        ).offset(offset).limit(limit)
         async with self.db_session as session:
             messages = await session.execute(query)
             return messages.scalars()
 
     async def read_one(self,id:UUID):
-        query = sql.select(MessageModel).filter(MessageModel.id == id)
+        query = sql.select(MessageModel).options(
+            selectinload(MessageModel.replies)
+        ).filter(MessageModel.id == id)
         async with self.db_session as session:
             try:
-                message=await session.execute(query)
-                return message.scalar_one()
+                result=await session.execute(query)
+                message= result.unique().scalar_one_or_none()
+                if not message:
+                    raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                return message
             except sql.exc.NoResultFound:
                     raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:
@@ -75,8 +84,12 @@ class MessageCrud:
         query = sql.select(MessageModel).filter(MessageModel.id == id)
         async with self.db_session as session:
             try:
-                message = session.execute(query)
+                result = session.execute(query)
+                message = result.scalar_one_or_none()
+                if not message:
+                    raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 await session.delete(message)
                 await session.commit()
+                return Response(status_code=status.HTTP_204_NO_CONTENT,content="message delete successfully.")
             except sql.exc.NoResultFound:
                 raise HTTPException(detail="Message Not Found!",status_code=status.HTTP_404_NOT_FOUND)

@@ -1,4 +1,4 @@
-from fastapi import HTTPException,status
+from fastapi import HTTPException,status,Response
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from app.schemas.media import *
 from app.models import *
@@ -59,8 +59,12 @@ class MediaCrud:
         query = sql.select(MediaModel).filter(MediaModel.id == id)
         async with self.db_session as session:
             try:
-                media = session.execute(query)
+                reslut = await session.execute(query)
+                media  = reslut.scalar_one_or_none()
+                if not media:
+                    raise HTTPException(detail="media Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
                 await session.delete(media)
                 await session.commit()
+                return Response(status_code=status.HTTP_204_NO_CONTENT,content="media delete successfully.")
             except sql.exc.NoResultFound:
                 raise HTTPException(detail="media Not Found!",status_code=status.HTTP_404_NOT_FOUND)

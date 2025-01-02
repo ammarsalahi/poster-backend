@@ -25,7 +25,7 @@ class MessageModel(Base):
     state = Column(String, default="notchecked")
     
     # Relations
-    parent_id = Column(UUID(as_uuid=True), ForeignKey("messages.id"), nullable=True)
+    parent_id = Column(UUID(as_uuid=True), ForeignKey("messages.id"), nullable=True,default=None)
     send_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     recieve_user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
 

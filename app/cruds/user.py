@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 from app.models import *
-from fastapi import HTTPException,status
+from fastapi import HTTPException,status,Response
 from uuid import UUID
 from app.core.security import hashed_password,verify_password
 from typing import List
@@ -201,9 +201,13 @@ class UserCrud:
         query=sql.select(UserModel).filter(UserModel.id==user_id)
         async with self.db_session as session:
             try:
-                user=await session.execute(query)
+                result=await session.execute(query)
+                user = result.scalar_one_or_none()
+                if not user:
+                    raise HTTPException(detail="User Not Found",status_code=status.HTTP_404_NOT_FOUND)
                 await session.delete(user)
                 await session.commit()
+                return Response(status_code=status.HTTP_204_NO_CONTENT,content="user delete successfully.")
             except sql.exc.NoResultFound:
                 raise HTTPException(detail="User Not Found",status_code=status.HTTP_404_NOT_FOUND)
             except Exception as e:

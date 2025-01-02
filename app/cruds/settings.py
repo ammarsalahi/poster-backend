@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 import sqlalchemy as sql
-from fastapi import HTTPException,status
+from fastapi import HTTPException,status,Response
 from app.models import *
 from typing import List
 from app.schemas.response import *
@@ -69,8 +69,12 @@ class UserSettingsCrud:
         query = sql.select(SettingsModel).filter(SettingsModel.id == id)
         async with self.db_session as session:
             try:
-                sett = session.execute(query)
+                result = session.execute(query)
+                sett = result.scalar_one_or_none()
+                if not sett:
+                    raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
                 await session.delete(sett)
                 await session.commit()
+                return Response(status_code=status.HTTP_204_NO_CONTENT,content="settings delete successfully.")
             except sql.exc.NoResultFound:
                 raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)

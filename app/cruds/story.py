@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from typing import List
 from app.models import *
-from fastapi import HTTPException,status
+from fastapi import HTTPException,status,Response
 from app.schemas.response import *
 import sqlalchemy as sql
 from app.schemas.story import *
@@ -73,14 +73,17 @@ class StoryCrud:
 
 
 
-    async def update(self,story_id:str,story_data:StoryEditSchema):
-        query = sql.select(StoryModel).filter(StoryModel.story_id == story_id)
+    async def update(self,id:UUID,story_data:StoryEditSchema):
+        query = sql.select(StoryModel).filter(StoryModel.id == id)
         async with self.db_session as session:
             try:
                 result = await session.execute(query)
                 story = result.scalar_one_or_none()
+                if not story:
+                    raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 for key,value in story_data.model_dump(exclude_unset=True).items():
-                    setattr(story,key,value)
+                    if value is not None:
+                        setattr(story,key,value)
                 await session.commit()
                 return story
             except sql.exc.NoResultFound:
@@ -93,9 +96,13 @@ class StoryCrud:
         query = sql.select(StoryModel).filter(StoryModel.id == id)
         async with self.db_session as session:
             try:
-                story = session.execute(query)
+                result = await session.execute(query)
+                story = result.scalar_one_or_none()
+                if not story:
+                    raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
                 await session.delete(story)
                 await session.commit()
+                return Response(status_code=status.HTTP_204_NO_CONTENT,content="stroy delete successfully.")
             except sql.exc.NoResultFound:
                 raise HTTPException(detail="Story Not Found!",status_code=status.HTTP_404_NOT_FOUND)
     

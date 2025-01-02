@@ -13,6 +13,7 @@ routers=APIRouter()
 async def list_stories(session:sessionDep,currentUser:userDep,limit:int=10,offset:int=0):
     if currentUser:
         return await StoryCrud(session).read_all(limit,offset)
+    raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 
 @routers.get("/info/{id}",response_model=StoryResponse)
@@ -43,6 +44,7 @@ async def create_story(
     media_file:UploadFile=File(...)
 ):
     if currentUser:
+        crud = StoryCrud(session)
         if not media_file:
             raise HTTPException(
                status_code=400, detail="No files were provided for upload."
@@ -53,7 +55,8 @@ async def create_story(
             user_id=currentUser.id,
             media_file = file_str
         )
-        return await StoryCrud(session).add(story_data)
+        up_story = await crud.add(story_data)
+        return await crud.read_one(up_story.id)
 
 
 @routers.patch("/{id}",response_model=StoryOnlyResponse)
@@ -64,26 +67,28 @@ async def update_story(
     story_type:str=Form(None),
     media_file:UploadFile=File(None)
 ):
-    story=await StoryCrud(session).read_by_story_id(id)
-    if currentUser.is_superuser or currentUser.id==story.user_id:
+    crud= StoryCrud(session)
+    re_story=await crud.read_by_story_id(id)
+    if currentUser.is_superuser or currentUser.id==re_story.user_id:
         if not media_file:
             raise HTTPException(
-               status_code=400, detail="No files were provided for upload."
+               status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="No files were provided for upload."
             )
         file_str = await save_media(media_file)
         story_data = StoryEditSchema(
             story_type = story_type,
             media_file = file_str
         )
-        return await StoryCrud(session).update(id,story_data)
+        up_story= await crud.update(re_story.id,story_data)
+        return await crud.read_one(up_story.id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 
 @routers.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
-async def delete_story(session:sessionDep,currentUser:userDep,id:UUID):
-    story=await StoryCrud(session).read_one(id)
+async def delete_story(session:sessionDep,currentUser:userDep,id:str):
+    story=await StoryCrud(session).read_by_story_id(id)
     if currentUser.is_superuser or currentUser.id==story.user_id:
-        return await StoryCrud(session).delete(id)
+        return await StoryCrud(session).delete(story.id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.post("/like/")

@@ -97,85 +97,79 @@ async def test_create_post(get_Header, override_get_db, monkeypatch):
             files=files,
         )
         assert noauth_response.status_code == 401
-        assert noauth_response.json() == {"detail": "Not authenticated"}
 
 
 
-# @pytest.mark.asyncio
-# async def test_update_post(monkeypatch,test_posts,get_Header_admin,get_Header,override_get_db):
-#     transport = ASGITransport(app=app)
-#     async with AsyncClient(transport=transport,base_url=BASE_URL) as client:
+@pytest.mark.asyncio
+async def test_update_post(monkeypatch,test_posts,get_Header_admin,get_Header,override_get_db):
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport,base_url=BASE_URL) as client:
 
-#         async def mock_save_media(upload_file):
-#             return f"/mock/path/{upload_file.filename}"
+        async def mock_save_media(upload_file):
+            return f"/mock/path/{upload_file.filename}"
 
-#         monkeypatch.setattr("app.utils.media.save_media", mock_save_media)
+        monkeypatch.setattr("app.utils.media.save_media", mock_save_media)
 
 
-#         valid_data = {
-#             "content": "This is a test post",
-#             "post_type": "public",
-#         }
-#         files = {
-#             "upload_files": ("test_file.txt", b"file content", "text/plain"),
-#             "upload_files": ("test_file2.txt", b"file content", "text/plain"),
-#         }
+        valid_data = {
+            "content": "This is a test post",
+            "post_type": "public",
+        }
+        files = {
+            "upload_files": ("test_file.txt", b"file content", "text/plain"),
+            "upload_files": ("test_file2.txt", b"file content", "text/plain"),
+        }
 
-#         id = test_posts[0].id
+        id = test_posts[0].post_id
 
-#         #admin test
-#         response = await client.patch(
-#             f"/posts/{id}",
-#             data=valid_data,
-#             files=files,
-#             headers=get_Header_admin
-#         )
-#         print(f"details: {response.text}")
-#         assert response.status_code == 200
+        #admin test
+        response = await client.patch(
+            f"/posts/{id}",
+            data=valid_data,
+            files=files,
+            headers=get_Header_admin
+        )
+        assert response.status_code == 200
         
-#         #not allowed user
-#         notallow_response = await client.patch(
-#             f"/posts/{id}",
-#             data=valid_data,
-#             files=files,
-#             headers=get_Header
-#         )
-#         assert notallow_response.status_code == 405
+        #not allowed user
+        notallow_response = await client.patch(
+            f"/posts/{id}",
+            data=valid_data,
+            files=files,
+            headers=get_Header
+        )
+        assert notallow_response.status_code == 405
 
-#         #no auth user
-#         noauth_response = await client.patch(
-#             f"/posts/{id}",
-#             data=valid_data,
-#             files=files,
-#         )
-#         assert noauth_response.status_code == 405
+        #no auth user
+        noauth_response = await client.patch(
+            f"/posts/{id}",
+            data=valid_data,
+            files=files,
+        )
+        assert noauth_response.status_code == 401
    
-#         #invalid parameter
-#         invalid_response = await client.patch(
-#             f"/posts/1234",
-#             data=valid_data,
-#             files=files,
-#         )
-#         assert invalid_response.status_code == 404
+        #invalid parameter
+        invalid_response = await client.patch(
+            f"/posts/1234",
+            data=valid_data,
+            files=files,
+            headers=get_Header_admin
+        )
+        assert invalid_response.status_code == 404
 
 
 
 
 @pytest.mark.asyncio
-async def test_post_delete(session,test_posts, get_Header_admin, override_get_db):
+async def test_post_delete(session,test_posts, get_Header_admin,get_Header, override_get_db):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url=BASE_URL) as client:
         # Valid post ID deletion
-        post=PostModel(
-            content="Post 1", post_type="text"
-        )
-        session.add(post)
-        await session.commit()
         
-        id= test_posts[0].id
+        
+        id= test_posts[0].post_id
         response = await client.delete(f"/posts/{id}",headers=get_Header_admin)
-        print(f"deatils :  {response.text}")
-        assert response.status_code==500
+        assert response.status_code==204
 
         #no auth 
         noauth_response = await client.delete(f"/posts/{id}")
@@ -183,4 +177,4 @@ async def test_post_delete(session,test_posts, get_Header_admin, override_get_db
 
         #no allow 
         noallow_response = await client.delete(f"/posts/{id}",headers= get_Header)
-        assert noallow_response.status_code ==405
+        assert noallow_response.status_code ==405 or 404

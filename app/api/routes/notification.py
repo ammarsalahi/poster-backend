@@ -19,7 +19,7 @@ async def list_notifies(session:sessionDep,currentUser:userDep,limit:int=10,offs
 
 @routers.get("/{id}",response_model=NotificationResponse)
 async def detail_notify(session:sessionDep,currentUser:userDep,id:UUID):
-    if currentUser:
+    if currentUser.is_superuser:
         return await NotificationCrud(session).read_one(id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
@@ -32,14 +32,18 @@ async def detail_user_notify(session:sessionDep,currentUser:userDep):
 @routers.post("/",response_model=NotificationResponse)
 async def create_notify(session:sessionDep,currentUser:userDep,data:NotificationAddSchema):
     if currentUser:
-        return await NotificationCrud(session).add(data)
+        crud = NotificationCrud(session)
+        cr_notify = await crud.add(data)
+        return await crud.read_one(cr_notify.id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.patch("/{id}",response_model=NotificationResponse)
 async def updae_notify(session:sessionDep,currentUser:userDep,id:UUID,data:NotificationEditSchema):
-    notif= await NotificationCrud(session).read_one(id)
+    crud = NotificationCrud(session)
+    notify= await crud.read_one(id)
     if currentUser.id == notif.user_id or currentUser.is_superuser:
-        return await NotificationCrud(session).update(id,data)
+        cr_notify = await crud.update(id,data)
+        return await crud.read_one(id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 @routers.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)

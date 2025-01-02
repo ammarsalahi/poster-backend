@@ -1,4 +1,4 @@
-from fastapi import HTTPException,status
+from fastapi import HTTPException,status,Response
 from typing import List
 from uuid import UUID
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -101,15 +101,19 @@ class PostCrud:
             async with self.db_session as session:
                 result=await session.execute(query)
                 post=result.scalar_one_or_none()
+                if not post:
+                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 for key , value in post_data.model_dump(exclude_unset=True).items():
-                    setattr(post,key,value)
+                    if value is not None:
+                        setattr(post,key,value)
+                await session.commit()
                 for media_data in medias:
                     new_media = MediaModel(
                         media_file=media_data,
                         post_id=id
                     )
                     session.add(new_media)
-                await session.commit()
+                    await session.commit()
                 return post
         except sql.exc.NoResultFound:
             raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
@@ -121,7 +125,10 @@ class PostCrud:
         query=sql.select(PostModel).filter(PostModel.id==id)
         async with self.db_session as session:
             try:
-                post=await session.execute(query)
+                result=await session.execute(query)
+                post = result.scalar_one_or_none()
+                if not post:
+                    raise HTTPException(detail="Post Not Found!",status_code=status.HTTP_404_NOT_FOUND)
                 await session.delete(post)
                 await session.commit()
             except sql.exc.NoResultFound:

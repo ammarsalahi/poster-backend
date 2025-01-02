@@ -36,12 +36,14 @@ async def create_comment(
     post_id:UUID=Form()
 ):
     if currentUser:
+        crud = CommentCrud(session)
         data=CommentAddSchema(
             content=content,
             post_id=post_id,
             user_id=currentUser.id
         )
-        return await CommentCrud(session).add(data)
+        cr_comment = await crud.add(data)
+        return await crud.read_one(cr_comment.id)
 
 
 @routers.patch("/{id}",response_model=CommentOnlyResponse)
@@ -51,10 +53,12 @@ async def update_comment(
     id:UUID,
     content:str=Form()
 ):
-    comment = await CommentCrud(session).read_one(id)
+    crud= CommentCrud(session)
+    re_comment = await crud.read_one(id)
     if currentUser.is_superuser or currentUser.id==comment.user_id:
         comment_data=CommentEditSchema(content=content)
-        return await CommentCrud(session).update(id,comment_data)
+        up_comment = await crud.update(id,comment_data)
+        return await crud.read_one(id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 

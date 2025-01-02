@@ -16,7 +16,7 @@ class NotificationCrud:
         query=sql.select(NotificationModel).offset(offset).limit(limit)
         async with self.db_session as session:
             notifies = await session.execute(query)
-            return notifies.scalars()
+            return notifies.unique().scalars()
 
     async def read_one(self,id:UUID):
         query = sql.select(NotificationModel).filter(NotificationModel.id == id)

@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio.session import AsyncSession
 import sqlalchemy as sql
-from fastapi import HTTPException,status
+from fastapi import HTTPException,status,Response
 from typing import List
 from app.models import *
 from pydantic import EmailStr
@@ -94,9 +94,13 @@ class ValidationCrud:
         query = sql.select(ValidationModel).filter(ValidationModel.id == id)
         async with self.db_session as session:
             try:
-                valid = session.execute(query)
+                result = session.execute(query)
+                valid = result.scalar_one_or_none()
+                if not valid:
+                    raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
                 await session.delete(valid)
                 await session.commit()
+                return Response(status_code = status.HTTP_204_NO_CONTENT,content = "validation delete successfully.")
             except sql.exc.NoResultFound:
                 raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
 
