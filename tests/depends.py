@@ -63,7 +63,8 @@ async def get_Header_admin(session):
     user = UserModel(fullname="admin",username="user1234", email="me1234@mail.com", password="1234",is_superuser=True)
     session.add(user)
     await session.commit()
-    token_data = {"sub": user.username}  # sub is typically the username in your JWT payload
+    token_data = {"sub": user.username} 
+    print(user.id) # sub is typically the username in your JWT payload
     token = create_access_token(data=token_data, expires_delta=timedelta(hours=1))
     HEADERS = {"Authorization": f"Bearer {token}"}
     return HEADERS   
@@ -130,8 +131,8 @@ async def test_comments(session):
 @pytest_asyncio.fixture
 async def test_settings(session):
     user=UserModel(username="user4",email="me414@mail.com",password="1234")
-    user2=UserModel(username="user5",email="me77@mail.com",password="1234")
-    session.add_all(user,user2)
+    session.add(user)
+    await session.flush()
     await session.flush()
     setts=[
         SettingsModel(user_id=user.id),

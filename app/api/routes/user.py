@@ -26,8 +26,10 @@ async def detail_user(session:sessionDep,currentUser:userDep):
     return currentUser
 
 @routers.get("/{username}",response_model=UserResponse)
-async def detail_user_username(session:sessionDep,username:str):
-    return  await UserCrud(session).read_by_username(username)
+async def detail_user_username(session:sessionDep,currentUser:userDep,username:str):
+    if currentUser:
+        data=await UserCrud(session).read_by_username(username)
+        return  data
 
 @routers.get("/search/",response_model=List[UserOnlyResponse])
 async def search_user(session:sessionDep,currentUser:userDep,query:str,limit:int=10):
@@ -52,7 +54,7 @@ async def update_user(
     is_active:bool = Form(None),
     is_verified:bool = Form(None)
 ):
-    if  currentUser.id==id:
+    if  currentUser.id==id or currentUser.is_superuser:
         file_path=None
         if profile_image:
             file_path = await save_media(profile_image)

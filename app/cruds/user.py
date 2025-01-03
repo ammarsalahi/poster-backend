@@ -89,12 +89,14 @@ class UserCrud:
         ).filter(UserModel.username==username)
         async with self.db_session as session:
             try:
-                user= await session.execute(query)
-                return user.unique().scalar_one()
+                result= await session.execute(query)
+                user= result.unique().scalar_one_or_none()
+                if not user:
+                    raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
+                return user    
 
             except sql.exc.NoResultFound:
                 raise HTTPException(detail="User Not Found!",status_code=status.HTTP_404_NOT_FOUND)
-
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

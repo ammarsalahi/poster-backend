@@ -34,24 +34,31 @@ class UserResponse(BaseModel):
     is_superuser:bool
     created_at:datetime
     updated_at:datetime
-    # user_posts:List["PostOnlyResponse"]
-    # user_comments:List["CommentOnlyResponse"]
-    # user_stories:List["StoryOnlyResponse"]
-    # followers:List["FollowResponse"]
-    # followings:List["FollowResponse"]
-    # liked_posts:List["PostOnlyResponse"]
-    # liked_comments:List["CommentOnlyResponse"]
-    # liked_stories:List["StoryOnlyResponse"]
-
+    user_posts:List["PostOnlyResponse"]
+    user_comments:List["CommentOnlyResponse"]
+    user_stories:List["StoryOnlyResponse"]
+    followers:List["FollowResponse"]
+    followings:List["FollowResponse"]
+    liked_posts:List["PostOnlyResponse"]
+    liked_comments:List["CommentOnlyResponse"]
+    liked_stories:List["StoryOnlyResponse"]
+    
+    model_config=ConfigDict(
+        from_attributes=True
+    )
 
 class SettingsResponse(BaseModel):
     id:UUID
     user_id:UUID
     theme:str
     is_two_factor_auth:bool
-    otp_qrcode_image:str
+    otp_qrcode_image:Optional[str]
     created_at:datetime
     updated_at:datetime
+    
+    model_config=ConfigDict(
+        from_attributes=True
+    )
 
 
 class MediaResponse(BaseModel):
@@ -85,14 +92,14 @@ class StoryResponse(BaseModel):
     #     from_attributes=True
     # )
 
-# class PostOnlyResponse(BaseModel):
-#     id:UUID
-#     post_id:str
-#     content:str
-#     views:int
-#     post_type:str
-#     visible:bool
-#     user_id:UUID
+class PostOnlyResponse(BaseModel):
+    id:UUID
+    post_id:str
+    content:str
+    views:int
+    post_type:str
+    visible:bool
+    user_id:UUID
 
 class PostResponse(BaseModel):
     id:UUID

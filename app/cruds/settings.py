@@ -32,8 +32,11 @@ class UserSettingsCrud:
         query = sql.select(SettingsModel).filter(SettingsModel.user_id==user_id)
         async with self.db_session as session:
             try:
-                sett=await session.execute(query)
-                return sett.scalar_one()
+                result=await session.execute(query)
+                sett = result.scalar_one()
+                if not sett:
+                    raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
+                return sett    
             except  sql.exc.NoResultFound:
                 raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
@@ -56,7 +59,8 @@ class UserSettingsCrud:
                 result = await session.execute(query)
                 sett = result.scalar_one_or_none()
                 for key,value in sett_data.model_dump(exclude_unset=True).items():
-                    setattr(SettingsModel,key,value)
+                    if value is not None:
+                        setattr(SettingsModel,key,value)
                 await session.commit()
                 return sett
             except  sql.exc.NoResultFound:
@@ -69,7 +73,7 @@ class UserSettingsCrud:
         query = sql.select(SettingsModel).filter(SettingsModel.id == id)
         async with self.db_session as session:
             try:
-                result = session.execute(query)
+                result = await session.execute(query)
                 sett = result.scalar_one_or_none()
                 if not sett:
                     raise HTTPException(detail="Settings Not Found!",status_code=status.HTTP_404_NOT_FOUND)    

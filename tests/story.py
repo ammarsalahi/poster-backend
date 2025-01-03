@@ -156,7 +156,7 @@ async def test_update_story(test_stories,get_Header_admin, override_get_db, monk
 
 
 @pytest.mark.asyncio
-async def test_post_delete(session,test_stories, get_Header_admin,get_Header, override_get_db):
+async def test_delete_story(session,test_stories, get_Header_admin,get_Header, override_get_db):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url=BASE_URL) as client:
         # Valid post ID deletion
