@@ -107,3 +107,9 @@ async def test_delete_user(test_users,get_Header_admin,override_get_db):
         id = test_users[0].id 
         response  = await client.delete(f"/users/{id}",headers=get_Header_admin)
         assert response.status_code == 204
+
+        ivalid_response  = await client.delete(f"/users/1234",headers=get_Header_admin)
+        assert ivalid_response.status_code == 422
+
+        auth_response  = await client.delete(f"/users/{id}",)
+        assert auth_response.status_code == 401

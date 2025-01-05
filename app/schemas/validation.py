@@ -1,13 +1,13 @@
 from pydantic import BaseModel,EmailStr
 
 class ValidationAddSchema(BaseModel):
-    email:EmailStr
+    email:str
 
 
 class ValidationEditSchema(BaseModel):
-    email:EmailStr
+    email:str
     is_verified:bool
 
 class ValidationVerifySchema(BaseModel):
-    email:EmailStr
+    email:str
     code:str

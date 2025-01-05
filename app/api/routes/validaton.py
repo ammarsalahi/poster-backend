@@ -18,13 +18,13 @@ async def list_validations(session:sessionDep,currentUser:userDep,limit:int=10,o
 
 
 @routers.get("/info/{id}",response_model=ValidationResponse)
-async def detail_validation(session:sessionDep,currentUser:userDep,valid_id:UUID):
+async def detail_validation(session:sessionDep,currentUser:userDep,id:UUID):
     if currentUser.is_superuser:
-        return await ValidationCrud(session).read_one(valid_id)
+        return await ValidationCrud(session).read_one(id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 
-@routers.get("/{email}",response_model=ValidationResponse)
+@routers.get("/{email}",response_model=List[ValidationResponse])
 async def detail_validation_email(session:sessionDep,currentUser:userDep,email:EmailStr):
     if currentUser:
         return await ValidationCrud(session).read_by_email(email)
@@ -40,14 +40,16 @@ async def validation_verify(session:sessionDep,valid_data:ValidationVerifySchema
 
 
 @routers.patch("/{id}",response_model=ValidationResponse)
-async def update_validation(session:sessionDep,currentUser:userDep,valid_id:UUID,valid_data:ValidationEditSchema):
-    if currentUser.is_superuser or valid_data.email:
-        return await ValidationCrud(session).update(valid_id,valid_data)
+async def update_validation(session:sessionDep,currentUser:userDep,id:UUID,valid_data:ValidationEditSchema):
+    if currentUser.is_superuser:
+        crud = ValidationCrud(session)
+        valid = await crud.update(id,valid_data)
+        return await crud.read_one(id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")
 
 
 @routers.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
-async def delete_validation(session:sessionDep,currentUser:userDep,valid_id:UUID):
+async def delete_validation(session:sessionDep,currentUser:userDep,id:UUID):
     if currentUser.is_superuser:
-        return await ValidationCrud(session).delete(valid_id)
+        return await ValidationCrud(session).delete(id)
     raise HTTPException(status_code=status.HTTP_405_METHOD_NOT_ALLOWED,detail="Method Not Allowed")

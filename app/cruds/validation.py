@@ -19,7 +19,7 @@ class ValidationCrud:
             return valids.scalars()
 
     async def read_one(self,id:UUID):
-        query = sql.select(ValidationModel).filter(ValidationModel.id==valid_id)
+        query = sql.select(ValidationModel).filter(ValidationModel.id==id)
         async with self.db_session as session:
             try:
                 valid=await session.execute(query)                    
@@ -30,11 +30,13 @@ class ValidationCrud:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     async def read_by_email(self,email:EmailStr):
-        query = sql.select(ValidationModel).filter(ValidationModel.email==str(email))
+        query = sql.select(ValidationModel).filter(
+            ValidationModel.email==str(email)
+        )
         async with self.db_session as session:
             try:
                 valid=await session.execute(query)
-                return valid.scalar_one()
+                return valid.scalars()
             except sql.exc.NoResultFound:
                 raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)    
             except Exception as e:
@@ -42,14 +44,18 @@ class ValidationCrud:
 
     async def read_verify(self,valid_data:ValidationVerifySchema):
         query = sql.select(ValidationModel).filter(
-            ValidationModel.email==str(email),
-            ValidationModel.code==valid_data.code,
-            ValidationModel.is_verified==False
+            sql.and_(
+                ValidationModel.email==str(valid_data.email),
+                ValidationModel.code==valid_data.code,
+                ValidationModel.is_verified==False
+            )
         )
         async with self.db_session as session:
             try:
                 result = await session.execute(query)
                 valid = result.scalar_one_or_none()
+                if not valid:
+                    raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND) 
                 update_query = (sql.update(ValidationModel).where(
                     ValidationModel.email == str(valid_data.email),
                     ValidationModel.code == valid_data.code
@@ -69,7 +75,7 @@ class ValidationCrud:
             try:
                 session.add(valid)
                 await session.commit()
-                await send_validation_email(valid.email,valid.code)
+                # await send_validation_email(valid.email,valid.code)
                 return valid
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -81,7 +87,8 @@ class ValidationCrud:
                 result = await session.execute(query)
                 validation = result.scalar_one_or_none()
                 for key,value in validation_data.model_dump(exclude_unset=True).items():
-                    setattr(validation,key,value)
+                    if value is not None:
+                        setattr(validation,key,value)
                 await session.commit()
                 return validation
             except sql.exc.NoResultFound:
@@ -94,7 +101,7 @@ class ValidationCrud:
         query = sql.select(ValidationModel).filter(ValidationModel.id == id)
         async with self.db_session as session:
             try:
-                result = session.execute(query)
+                result = await session.execute(query)
                 valid = result.scalar_one_or_none()
                 if not valid:
                     raise HTTPException(detail="Validation Not Found!",status_code=status.HTTP_404_NOT_FOUND)        
