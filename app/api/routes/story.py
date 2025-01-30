@@ -1,4 +1,4 @@
-from fastapi import APIRouter,status,HTTPException,Form,File,UploadFile
+from fastapi import APIRouter,status,HTTPException,Form,File,UploadFile,Request
 from app.models import *
 from app.api.deps import *
 from app.cruds import StoryCrud
@@ -40,6 +40,7 @@ async def detail_user_stories(session:sessionDep,currentUser:userDep):
 async def create_story(
     session:sessionDep,
     currentUser:userDep,
+    request:Request,
     story_type:str=Form(None),
     media_file:UploadFile=File(...)
 ):
@@ -49,7 +50,7 @@ async def create_story(
             raise HTTPException(
                status_code=400, detail="No files were provided for upload."
             )
-        file_str = await save_media(media_file)
+        file_str = await save_media(media_file,request)
         story_data = StoryAddSchema(
             story_type = story_type,
             user_id=currentUser.id,
@@ -63,6 +64,7 @@ async def create_story(
 async def update_story(
     session:sessionDep,
     currentUser:userDep,
+    request:Request,
     id:str,
     story_type:str=Form(None),
     media_file:UploadFile=File(None)
@@ -74,7 +76,7 @@ async def update_story(
             raise HTTPException(
                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="No files were provided for upload."
             )
-        file_str = await save_media(media_file)
+        file_str = await save_media(media_file,request)
         story_data = StoryEditSchema(
             story_type = story_type,
             media_file = file_str

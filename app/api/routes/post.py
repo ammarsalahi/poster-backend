@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, File, Form, UploadFile,status,HTTPException,Response
+from fastapi import APIRouter, File, Form, UploadFile,status,HTTPException,Response,Request
 from app.schemas.media import MediaAddSchema
 from app.schemas.comment import *
 from app.schemas.post import *
@@ -41,9 +41,11 @@ async def detail_user_posts(session:sessionDep,currentUser:userDep):
 async def create_post(
     session:sessionDep,
     currentUser:userDep,
+    request:Request,
     content:str=Form(),
     post_type:str=Form(None),
-    upload_files:List[UploadFile]=File(...)
+    upload_files:List[UploadFile]=File(...),
+
 ):
     if currentUser:
         crud=PostCrud(session)
@@ -53,7 +55,7 @@ async def create_post(
             )
         medias:List[str]=[]
         for upload in upload_files:
-            file_path = await save_media(upload)
+            file_path = await save_media(upload,request)
             medias.append(file_path)
         post_data=PostAddSchema(content=content,post_type=post_type,user_id=currentUser.id)
         post =await crud.add(post_data,medias)
@@ -66,6 +68,7 @@ async def create_post(
 async def update_post(
         session:sessionDep,
         currentUser:userDep,
+        request:Request,
         id:str,
         content:Optional[str]=Form(None),
         post_type:Optional[str]=Form(None),
@@ -78,7 +81,7 @@ async def update_post(
     if currentUser.is_superuser or currentUser.id==re_post.user_id:
         medias:List[str]=[]
         for upload in upload_files:
-            file_path = await save_media(upload)
+            file_path = await save_media(upload,request)
             medias.append(file_path)
         post= PostEditSchema(
             content=content,

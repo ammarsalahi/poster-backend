@@ -10,7 +10,7 @@ from app.schemas.response import *
 from app.schemas.user import *
 import sqlalchemy as sql
 from app.core.config import settings
-
+from app.core.db import async_session
 
 class UserCrud:
 
@@ -215,29 +215,11 @@ class UserCrud:
             except Exception as e:
                 raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    async def create_admin(self):
-        if settings.IS_OLD_ADMINS_DELETE:
-            query = sql.select(UserModel).filter(UserModel.is_superuser==True)
-            async with self.db_session as session:
-                try:
-                    users= await session.execute(query)
-                    if users:
-                        await session.delete(users)
-                        await session.commit()
-                except Exception as e:
-                    raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        user=UserModel(
-            username=settings.ADMIN_USERNAME,
-            email=settings.ADMIN_USERNAME,
-            password=hashed_password(f"{settings.ADMIN_PASSWORD}"),
-            profile_type="private",
-            is_verified=True,
-            is_active=True,
-            is_superuser=True
-        )
-        async with self.db_session as session:
-            try:
-                session.add(user)
-                await session.commit()
-            except Exception as e:
-                raise HTTPException(detail=str(e),status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+
+
+
+
+        
+
+        

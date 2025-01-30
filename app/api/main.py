@@ -1,11 +1,12 @@
 from fastapi import APIRouter
 from app.api.routes import *
 from app.api.graphqls import Mutation,Query
-from .deps import sessionDep
+from .deps import sessionDep,userDep
 import strawberry
 from strawberry.fastapi import GraphQLRouter
 from strawberry.file_uploads import Upload
 from starlette.datastructures import UploadFile
+
 
 
 app_router = APIRouter()
@@ -24,7 +25,15 @@ app_router.include_router(validationRouters,prefix="/validations",tags=['validat
 
 
 # define graphQL router
-schema=strawberry.Schema(mutation=Mutation,query=Query,scalar_overrides={UploadFile:Upload})
-graphql_router = GraphQLRouter(schema)
+
+async def get_context(db:sessionDep,user:userDep):
+    return {
+        "session":db,
+        "current_user":user
+    }
+    
+schema=strawberry.Schema(query=Query,mutation=Mutation)
+graphql_router = GraphQLRouter(schema,context_getter=get_context)
+
 
 app_router.include_router(graphql_router,prefix="/graphql")

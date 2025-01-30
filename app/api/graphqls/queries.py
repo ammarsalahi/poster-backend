@@ -13,6 +13,7 @@ class Query:
 
     @strawberry.field
     async def filter_users(self,info:Info,q:str,limit:int=10 )->Optional[List[UserType]]:
+            
         session = get_session(info)
         current_user = await get_user(info)
         if current_user:
